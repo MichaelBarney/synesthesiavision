@@ -1,0 +1,22 @@
+-Processo de Testes com o Synesthesia Vision:
+
+1) Perguntas Iniciais:
+	-Saber se assiste filmes ou joga video-games
+	-Saber se acha que algum de seus sentidos melhoraram
+	-Saber os seus conhecimentos sobre Audio 3D
+
+2) Detalhamento:
+	-Relacionar Audio 3D à algumas mídias
+	-Explicar o funcionamento do Audio 3D
+	-Detalhar o que o aparelho "Synesthesia" promete realizar
+
+3) Realização dos Testes:
+	-Realizar o experimento para detecção de sentidos do audio
+	-Realizar experimento para detecção de distância apenas para a frente
+	-Inicio do teste com os 5 sensores a uma velocidade de 500ms por sensor
+	-Aumento da velocidade de mapeamento gradativo
+
+4) Perguntas Finais:
+	-O que achou da tecnologia audio 3D?
+	-O que achou do projeto em questão?
+	-O que espera futuramente do projeto?
