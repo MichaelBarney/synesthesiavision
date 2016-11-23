@@ -1,31 +1,31 @@
 package com.bananadigital.sound3d;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.SoundPool;
-import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "Timer";
+
     Context c;
 
     SoundPool soundPool;
@@ -40,12 +40,16 @@ public class MainActivity extends ActionBarActivity {
 
     int[] ds = new int[n_s];
 
+    boolean running = false;
+
     //Layout
     SeekBar seek;
     Button button;
-    TextView ps;
+    Button setValue;
+    EditText ps;
     TextView total;
     TextView valor_f;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +72,90 @@ public class MainActivity extends ActionBarActivity {
         sf = soundPool.load(this, R.raw.bu, 2);
 
         //timer
+        turnOnTimer();
+
+        //Layout
+        //valor da frente
+        valor_f = (TextView) findViewById(R.id.valor_f);
+
+        //EditText
+        ps = (EditText) findViewById(R.id.ps);
+        total = (TextView) findViewById(R.id.total);
+
+        //Button
+        button = (Button) findViewById(R.id.button);
+        setValue = (Button) findViewById(R.id.setValue);
+        button.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+
+                if(time != 0 && !running) {
+                    timer.schedule(task, 0, time);
+                    running = true;
+                } else if (time == 0) {
+                    Toast.makeText(getApplicationContext(), "Valor Incorreto",
+                                                                        Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Aplicação já iniciada",
+                                                                        Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        setValue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String timer = ps.getText().toString();
+                time = Integer.parseInt(timer);
+                seek.setProgress(time);
+                stopTimer();
+                turnOnTimer();
+            }
+        });
+
+        //SeekBar
+        seek = (SeekBar) findViewById(R.id.frequency);
+        seek.setProgress(time);
+        ps.setText("" + time);
+        total.setText("" + ((float)(time * n_s)/1000));
+        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(progress != 0) {
+                    time = progress;
+                    ps.setText("" + time);
+                    total.setText("" + ((float) (time * n_s) / 1000));
+                } else {
+                    Toast.makeText(getApplicationContext(), "Valor Inválido",
+                                                                        Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                stopTimer();
+                Log.d(TAG, "Started");
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                turnOnTimer();
+                Log.d(TAG, "Stoped");
+            }
+        });
+    }
+
+    private void stopTimer() {
+        timer.cancel();
+        timer.purge();
+        timer = null;
+        task.cancel();
+        task = null;
+        running = false;
+        timer = new Timer();
+    }
+
+    private void turnOnTimer() {
         task = new TimerTask() {
             @Override
             public void run() {
@@ -77,50 +165,7 @@ public class MainActivity extends ActionBarActivity {
                 playAudio(c_s);
             }
         };
-
-        //Layout
-        //valor da frente
-        valor_f = (TextView) findViewById(R.id.valor_f);
-
-        //Button
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                timer.scheduleAtFixedRate(task, 0, time);
-            }
-        });
-
-
-        //SeeBar
-        seek = (SeekBar) findViewById(R.id.frequency);
-        seek.setProgress(time);
-        ps = (TextView) findViewById(R.id.ps);
-        ps.setText("" + time);
-        total = (TextView) findViewById(R.id.total);
-        total.setText("" + ((float)(time * n_s)/1000));
-        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                time = progress;
-                ps.setText("" + time);
-                total.setText("" + ((float)(time * n_s)/1000));
-                timer.cancel();
-                timer.scheduleAtFixedRate(task, 0, time);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
     }
-
 
 
     int dmax = 200;
@@ -220,19 +265,18 @@ public class MainActivity extends ActionBarActivity {
     //handle all messages from bluetooth
     void handleMsg(String r){
         char[] c = r.toCharArray();
-        for(int i = 0; i < c.length; i++){
-            if(Character.isDigit(c[i])){
-                distance += c[i];
-            }
-            else if(Character.isLetter(c[i])){
-                if(distance != "") {
+        for (char aC : c) {
+            if (Character.isDigit(aC)) {
+                distance += aC;
+            } else if (Character.isLetter(aC)) {
+                if (distance != "") {
                     saveAudio(sensor, Integer.parseInt(distance));
-                    if(sensor == 'c'){
+                    if (sensor == 'c') {
                         valor_f.setText("" + distance);
                     }
                     distance = "";
                 }
-                sensor = c[i];
+                sensor = aC;
             }
         }
     }
