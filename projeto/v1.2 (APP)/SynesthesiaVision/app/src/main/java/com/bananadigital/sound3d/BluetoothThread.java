@@ -49,6 +49,9 @@ public class BluetoothThread extends Thread {
         } catch (IOException e) { }
     }
 
+
+
+
     public void run() {
         // Cancel discovery because it will slow down the connection
         BA.cancelDiscovery();
@@ -65,7 +68,7 @@ public class BluetoothThread extends Thread {
             return;
         }
         mHandler.obtainMessage(SUCCESS_CONNECT).sendToTarget();
-        Log.e("tag", "CONNECTED");
+        Log.d("tag", "CONNECTED");
 
 
         //AFTER CONNECTION

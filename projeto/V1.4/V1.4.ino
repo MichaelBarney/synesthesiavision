@@ -18,10 +18,6 @@
 int sensors[G][N];
 String alph = "abcdefghijklmnopqrstuvwxyz";
 
-boolean startCycle = false;
-String received = "";
-char DELIMITER = '\n';
-
 void setup() {
   //Begin Serial
   Serial.begin (9600);
@@ -42,59 +38,15 @@ void setup() {
 
 
 void loop() {
-
-  /*if(Serial.available() && !startCycle) {
-    
-    while(Serial.available()) {
-      received += (char)Serial.read();
-    }
-    
-    // Look for complete messages
-    parseReadBuffer();
-  }*/
-  //if(startCycle) {
-    for(int i = 0; i < G; i++){
-       if(i == 0 ||i == 2 || i == 4){
-          Serial.print(alph.charAt(i));
-          Serial.println(getDistance(i));
-       }
-    }
-  //}
+  for(int i = 0; i < G; i++){
+     if(i == 0 ||i == 2 || i == 4){
+        Serial.println(alph.charAt(i));
+        Serial.println(getDistance(i));
+     }
+  }
     //Serial.println("hello");
   //Serial.println('a');
   //Serial.println (getDistance(1));
-}
-
-
-void parseReadBuffer() {
-  
-  // Find the first delimiter in the buffer
-  int inx = received.indexOf(DELIMITER);
-  
-  // If there is none, exit
-  if (inx == -1) return;
-  
-  // Get the complete message, minus the delimiter
-  String s = received.substring(0, inx);
-  
-  // Remove the message from the buffer
-  received = received.substring(inx + 1);
-  
-  // Process the message
-  gotMessage(s);
-  
-  // Look for more complete messages
-  parseReadBuffer();
-}
-
-
-void gotMessage(String message) {
-  
-  Serial.println("[RECV]: " + message);
-  
-  if(message == "CONNECTED") {
-    startCycle = true;
-  }
 }
 
 

@@ -71,7 +71,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Iniciar"
+        android:text="Começar"
         android:id="@+id/button"
         android:onClick="start"
         android:layout_alignParentBottom="true"
@@ -105,18 +105,6 @@
         android:layout_centerVertical="true"
         android:layout_toEndOf="@+id/button"
         android:id="@+id/ps"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:singleLine="true"
-        android:selectAllOnFocus="false"
-        android:cursorVisible="true" />
-
-    <Button
-        android:text="Definir novo valor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView4"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:id="@+id/setValue" />
+        android:textAppearance="@android:style/TextAppearance.Material.Large" />
 
 </RelativeLayout>

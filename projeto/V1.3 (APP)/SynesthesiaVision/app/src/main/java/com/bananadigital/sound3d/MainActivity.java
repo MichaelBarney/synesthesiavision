@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 turnOnTimer();
-                Log.d(TAG, "Stoped");
+                Log.d(TAG, "Stopped");
             }
         });
     }
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         task = new TimerTask() {
             @Override
             public void run() {
-                Log.e("", "Timer: " + c_s);
+                //Log.e("", "Timer: " + c_s);
                 c_s ++;
                 if(c_s == n_s) c_s = 0;
                 playAudio(c_s);
@@ -194,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         if(s == 0){
             soundPool.setVolume(sf, v, 0);
             soundPool.setRate(sf, 1.4f);
+            Log.d(TAG, "LEFT: D = " + d + " V = " + v);
         }
         //Top Left
         else if(s == 1){
@@ -204,9 +205,7 @@ public class MainActivity extends AppCompatActivity {
         else if(s == 2){
             soundPool.setVolume(sf, v/2, v/2);
             soundPool.setRate(sf, 1.0f);
-            Log.e("", "FRONT");
-            Log.e("Distance:", "" + d);
-            Log.e(" ", "volume set: " + v);
+            Log.d(TAG, "FRONT: D = " + d + " V = " + v);
         }
         //Top Right
         else if(s == 3){
@@ -217,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
         else if(s == 4){
             soundPool.setVolume(sf, 0, v);
             soundPool.setRate(sf, 0.6f);
+            Log.d(TAG, "RIGHT: D = " + d + " V = " + v);
         }
     }
 
@@ -309,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();  // Always call the superclass method first
         soundPool.pause(sf);
-        Log.e("", "PAUSED");
+        Log.d(TAG, "PAUSED");
         // Release the Camera because we don't need it when paused
         // and other activities might need to use it.
     }

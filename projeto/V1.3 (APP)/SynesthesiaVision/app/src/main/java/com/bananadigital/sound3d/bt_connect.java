@@ -6,11 +6,10 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,15 +19,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.Set;
 
-/**
- * Created by Michael Barney Jr on 18/03/2015.
- */
+
 public class bt_connect extends Activity {
 
-    BluetoothAdapter BA;
+    private BluetoothAdapter BA;
     public static BluetoothThread blueThread;
 
     private ListView lv;
@@ -51,13 +49,15 @@ public class bt_connect extends Activity {
             super.handleMessage(msg);
             switch (msg.what){
                 case CONNECTING:
-                    img.setImageDrawable(getResources().getDrawable(R.drawable.loading));
-                    text.setText("CONNECTING");
+                    img.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),
+                            R.drawable.loading));
+                    text.setText(R.string.connecting);
                     break;
                 case SUCCESS_CONNECT:
                     //Toast.makeText(getApplicationContext(), "CONNECTED",  Toast.LENGTH_LONG).show();
-                    img.setImageDrawable(getResources().getDrawable(R.drawable.check));
-                    text.setText("CONNECTED!");
+                    img.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),
+                            R.drawable.check));
+                    text.setText(R.string.connected);
                     Intent intent = new Intent(context, MainActivity.class);
                     startActivity(intent);
 
@@ -66,8 +66,9 @@ public class bt_connect extends Activity {
                     break;
                 case FAILLED_CONNECT:
                     //Toast.makeText(getApplicationContext(), "FAILLED",  Toast.LENGTH_LONG).show();
-                    img.setImageDrawable(getResources().getDrawable(R.drawable.cross));
-                    text.setText("FAILLED");
+                    img.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),
+                                                                            R.drawable.cross));
+                    text.setText(R.string.failed);
                     break;
             }
         }
@@ -89,6 +90,7 @@ public class bt_connect extends Activity {
 
         turnOnBluetooth();
     }
+
     void autoConnect(){
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
         String address = bt_name.getString("bt_address", "*");
@@ -99,9 +101,11 @@ public class bt_connect extends Activity {
             blueThread.start();
         }
     }
+
     void close(){
         this.finish();
     }
+
     void turnOnBluetooth(){
         Log.e("", "wut");
         if (!BA.isEnabled()) {
@@ -113,6 +117,7 @@ public class bt_connect extends Activity {
             getDevices();
         }
     }
+
     void getDevices(){
         pairedDevices = BA.getBondedDevices();
 
@@ -150,7 +155,7 @@ public class bt_connect extends Activity {
         editor.putString("bt_address", a);
 
         // Commit the edits!
-        editor.commit();
+        editor.apply();
 
         Log.e("saved", a);
     }

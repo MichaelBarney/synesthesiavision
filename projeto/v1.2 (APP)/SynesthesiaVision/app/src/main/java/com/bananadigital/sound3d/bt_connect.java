@@ -6,8 +6,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -28,8 +27,10 @@ import java.util.Set;
  */
 public class bt_connect extends Activity {
 
+    private static final String TAG = "bt_connect";
     BluetoothAdapter BA;
     public static BluetoothThread blueThread;
+    public static BluetoothThreadV2 btt;
 
     private ListView lv;
     private ImageView img;
@@ -92,11 +93,13 @@ public class bt_connect extends Activity {
     void autoConnect(){
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
         String address = bt_name.getString("bt_address", "*");
-        Log.e("loaded", address);
+        Log.d(TAG, address);
         if(address != "*"){
             BluetoothDevice bt = BA.getRemoteDevice(address);
-            blueThread = new BluetoothThread(bt,mHandler, BA);
-            blueThread.start();
+            btt = new BluetoothThreadV2(address, mHandler);
+            btt.start();
+            //blueThread = new BluetoothThread(bt,mHandler, BA);
+            //blueThread.start();
         }
     }
     void close(){
@@ -122,6 +125,7 @@ public class bt_connect extends Activity {
             list.add(bt.getName() + "\n" + bt.getAddress());
 
         if(list.isEmpty()){
+            getDevices();
         }
 
         final ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1, list);
@@ -129,20 +133,65 @@ public class bt_connect extends Activity {
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1,int position, long arg3)
+            public void onItemClick(AdapterView<?> arg0, View arg1 ,int position, long id)
             {
-                BA.cancelDiscovery();
+                //BA.cancelDiscovery();
                 final String info = ((TextView) arg1).getText().toString();
                 String address = info.substring(info.length()-17);
-                BluetoothDevice bt = BA.getRemoteDevice(address);
+                //BluetoothDevice bt = BA.getRemoteDevice(address);
 
-                blueThread = new BluetoothThread(bt,mHandler, BA);
-                blueThread.start();
+                //blueThread = new BluetoothThread(bt,mHandler, BA);
+                //blueThread.start();
+
+                /*String item = (String) adapter.getItem(position);
+                String devName = item.substring(0, item.indexOf("\n"));
+                String devAddress = item.substring(item.indexOf("\n") + 1, item.length());*/
+
+                btt = new BluetoothThreadV2(address, myHandler);
+
+                // Run the thread
+                btt.start();
+
+
 
                 saveAddress(address);
             }
         });
     }
+
+    Handler myHandler = new Handler(){
+
+        @Override
+        public void handleMessage(Message message) {
+            super.handleMessage(message);
+            String s = message.obj.toString();
+            Log.i(TAG, s);
+            switch (s) {
+                case "CONNECTED":
+
+                    img.setImageDrawable(getResources().getDrawable(R.drawable.check));
+                    text.setText("CONNECTED!");
+                    btt.write("CONNECTED");
+                    Intent intent = new Intent(context, MainActivity.class);
+                    startActivity(intent);
+                    Log.i(TAG, "Activity called");
+                    close();
+
+                    break;
+                case "DISCONNECTED":
+
+                    break;
+
+                case "CONNECTION FAILED":
+                    img.setImageDrawable(getResources().getDrawable(R.drawable.cross));
+                    Log.i(TAG, "Connection refused");
+                    btt = null;
+                    break;
+
+            }
+        }
+    };
+
 
     void saveAddress(String a){
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);

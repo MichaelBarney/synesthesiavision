@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,13 +17,18 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 //Modificado para 3 Sensores
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity" ;
+    private static final String TAG1 = "Teste1";
+    private static final String TAG2 = "Teste2";
+    private static final char DELIMITER = '\n';
     Context c;
 
     SoundPool soundPool;
@@ -32,12 +37,13 @@ public class MainActivity extends ActionBarActivity {
     Timer timer = new Timer();
     int time = 250; //miliseconds
     TimerTask task;
-    boolean timing = false;
 
-    int n_s = 5; //number of sensors
+    private Handler writeHandler;
+
+    int n_s = 3; //number of sensors
     int c_s = 0; //current sensor
 
-    int[] ds = new int[n_s];
+    float[] ds = new float[n_s];
 
     //Layout
     SeekBar seek;
@@ -54,12 +60,15 @@ public class MainActivity extends ActionBarActivity {
     float fv;
     float ev;
     float dv;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        bt_connect.blueThread.setHandler(mHandler);
+        //bt_connect.blueThread.setHandler(mHandler);
+        writeHandler = ConnectBluetooth.btt.getWriteHandler();
+        ConnectBluetooth.btt.setReadHandler(readHandler);
         c = this;
         setContentView(R.layout.activity_main);
 
@@ -76,7 +85,7 @@ public class MainActivity extends ActionBarActivity {
         sf = soundPool.load(this, R.raw.bu, 2);
 
         //timer
-        task = new TimerTask() {
+        /*task = new TimerTask() {
             @Override
             public void run() {
                 c_s ++;
@@ -85,7 +94,7 @@ public class MainActivity extends ActionBarActivity {
                     playAudio(c_s);
                 }
             }
-        };
+        };*/
 
         //Layout
         //valor da frente
@@ -102,7 +111,9 @@ public class MainActivity extends ActionBarActivity {
         button.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
-                timer.scheduleAtFixedRate(task, 0, time);
+                turnOnTimer();
+                timer.schedule(task, 0, time);
+                Log.d(TAG, "Clicked!");
             }
         });
 
@@ -127,22 +138,54 @@ public class MainActivity extends ActionBarActivity {
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                time = progress;
-                ps.setText("" + time);
-                total.setText("" + ((float)(time * n_s)/1000));
+                if(progress != 0) {
+                    time = progress;
+                    ps.setText("" + time);
+                    total.setText("" + ((float) (time * n_s) / 1000));
+                } else {
+                    Toast.makeText(getApplicationContext(), "Valor Inválido",
+                            Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                stopTimer();
+                Log.d(TAG, "Started");
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                turnOnTimer();
+                Log.d(TAG, "Stopped");
             }
         });
     }
+
+
+    private void stopTimer() {
+        timer.cancel();
+        timer.purge();
+        timer = null;
+        task.cancel();
+        task = null;
+        timer = new Timer();
+    }
+
+    private void turnOnTimer() {
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(TAG, "Timer: " + c_s);
+                c_s ++;
+                if(c_s == n_s) {
+                    c_s = 0;
+                }
+                playAudio(c_s);
+            }
+        };
+    }
+
 
 
 
@@ -150,123 +193,117 @@ public class MainActivity extends ActionBarActivity {
     public void playAudio(int s) {
         //calcula a itensidade proporcional de p para a distancia
         float v;
-        int d = ds[s];
+        float d = ds[s];
 
-        if(d <= dmax){v = (float) 1 - ((float) d/dmax);}
+        Log.d(TAG, "" + String.valueOf(d));
+
+        if(d <= dmax) v =  1 - (d/dmax);
         else{v = 0.01f;}
 
+        // 0 == LEFT
+        // 1 == FRONT
+        // 2 == RIGHT
 
         //LEFT
-        if(s == 0){
+        if(s == 2){
             soundPool.setVolume(sf, v, 0);
             soundPool.setRate(sf, 0.6f);
             ev = v;
-            Log.e("", "LEFT");
-            Log.e("Distance:", "" + d);
-            Log.e(" ", "volume set: " + v);
+            Log.d(TAG, "RIGHT " + d + " " + v);
         }
-        //Top Left
+        //FRONT
         else if(s == 1){
-            soundPool.setVolume(sf, (v * 3) / 4, v / 4);
-            soundPool.setRate(sf, 0.8f);
-        }
-        //Front
-        else if(s == 2){
             soundPool.setVolume(sf, v/2, v/2);
             soundPool.setRate(sf, 1.0f);
             fv = v/2;
-            Log.e("", "FRONT");
-            Log.e("Distance:", "" + d);
-            Log.e(" ", "volume set: " + v);
-        }
-        //Top Right
-        else if(s == 3){
-            soundPool.setVolume(sf, v / 4, (v * 3) / 4);
-            soundPool.setRate(sf, 1.2f);
+            Log.d(TAG, "FRONT " + d + " " + v);
         }
         //RIGHT
-        else if(s == 4){
+        else if(s == 0){
             soundPool.setVolume(sf, 0, v);
             soundPool.setRate(sf, 1.4f);
             dv = v;
-            Log.e("", "RIGHT");
-            Log.e("Distance:", "" + d);
-            Log.e(" ", "volume set: " + v);
+            Log.d(TAG, "LEFT " + d + " " + v);
         }
     }
 
 
-    public void saveAudio(char s, int d) {
-        //LEFT - RIGHT
+    private void saveAudio(char s, float d) {
+
+        //LEFT
         if(s == 'a'){
-            ds[4] = d;
+            ds[0] = d;
         }
-        else if(s == 'b'){
-            ds[3] = d;
-        }
+        //FRONT
         else if(s == 'c'){
-            ds[2] = d;
-        }
-        else if(s == 'd'){
             ds[1] = d;
         }
+        //RIGHT
         else if(s == 'e'){
-            ds[0] = d;
+            ds[2] = d;
         }
     }
     ////-----HANDLER---
 
-    //constant for message read
-    private static final int MESSAGE_READ = 3;
-    //bluetooth comunication variables
-    char msgType = '*'; //c = CurrentComponent
-
-    //message handler
-    Handler mHandler = new Handler(){
-        @Override
-        public void handleMessage(Message msg){
-            super.handleMessage(msg);
-            switch (msg.what){
-                case MESSAGE_READ:
-                    String readMessage = msg.obj.toString();
-                    handleMsg(readMessage);
-                    break;
-            }
-        }
-    };
-
     String distance = "";
     char sensor = '*';
-    //handle all messages from bluetooth
-    void handleMsg(String r){
-        char[] c = r.toCharArray();
-        for(int i = 0; i < c.length; i++){
-            if(Character.isDigit(c[i])){
-                distance += c[i];
+
+    private void handleMsg2(String r) {
+
+        int inx = r.indexOf(DELIMITER);
+
+        String sensor1 = r.substring(0, 1);
+        distance = r.substring(1, inx);
+
+        sensor = sensor1.charAt(0);
+
+
+
+        //Log.d(TAG,"[SENSOR]: " + sensor + " [DISTANCE]: "+ distance);
+
+        if (!distance.isEmpty()) {
+
+            try {
+                saveAudio(sensor, Float.valueOf(distance));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                Log.e(TAG, "[Incorrect Number Format]" + e);
             }
-            else if(Character.isLetter(c[i])){
-                if(distance != "") {
-                    saveAudio(sensor, Integer.parseInt(distance));
-                    if(sensor == 'c'){
-                        valor_f.setText("" + distance);
-                        volume_f.setText(String.format("%.02f", fv));
-                    }
-                    else if(sensor == 'a'){
-                        valor_d.setText("" + distance);
-                        volume_d.setText(String.format("%.02f", dv));
-                    }
-                    else if(sensor == 'e'){
-                        valor_e.setText("" + distance);
-                        volume_e.setText(String.format("%.02f", ev));
-                    }
-                    distance = "";
-                }
-                sensor = c[i];
+            if (sensor == 'c') {
+            valor_f.setText("" + distance);
+            volume_f.setText(String.format("%.02f", fv));
+            } else if (sensor == 'a') {
+                valor_d.setText("" + distance);
+                volume_d.setText(String.format("%.02f", dv));
+            } else if (sensor == 'e') {
+                valor_e.setText("" + distance);
+                volume_e.setText(String.format("%.02f", ev));
             }
+            distance = "";
         }
+
+
     }
 
 
+    Handler readHandler = new Handler () {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+
+            String s = msg.obj.toString();
+
+            //Log.i(TAG, "[RECV IN MAIN]: " + s);
+            //handleMsg(s);
+            s += DELIMITER;
+            handleMsg2(s);
+            if (s.equals("DISCONNECT")) {
+                Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
+                ConnectBluetooth.btt.write("DISCONNECTED");
+            }
+        }
+
+    };
 
     ///// ---------EXTRAS----------------
     @Override
@@ -294,8 +331,18 @@ public class MainActivity extends ActionBarActivity {
     public void onPause() {
         super.onPause();  // Always call the superclass method first
         soundPool.pause(sf);
+        if(ConnectBluetooth.btt != null) {
+            //ConnectBluetooth.btt = null;
+            //ConnectBluetooth.btt.disconnect();
+        }
         Log.e("", "PAUSED");
         // Release the Camera because we don't need it when paused
         // and other activities might need to use it.
     }
+
+
+
+
+
+
 }
