@@ -17,6 +17,7 @@
 
 int sensors[G][N];
 String alph = "abcdefghijklmnopqrstuvwxyz";
+String received = "";
 
 void setup() {
   //Begin Serial
@@ -38,18 +39,51 @@ void setup() {
 
 
 void loop() {
+
+  if(Serial.available()) {
+    while(Serial.available()) {
+      received += (char) Serial.read();
+    }
+  }
+  
   for(int i = 0; i < G; i++){
      if(i == 0 ||i == 2 || i == 4){
-        Serial.println(alph.charAt(i));
+        Serial.print(alph.charAt(i));
         Serial.println(getDistance(i));
      }
   }
-    //Serial.println("hello");
-  //Serial.println('a');
-  //Serial.println (getDistance(1));
+}
+
+void parseReadBuffer() {
+  
+  // Find the first delimiter in the buffer
+  int inx = received.indexOf(DELIMITER);
+  
+  // If there is none, exit
+  if (inx == -1) return;
+  
+  // Get the complete message, minus the delimiter
+  String s = received.substring(0, inx);
+  
+  // Remove the message from the buffer
+  received = received.substring(inx + 1);
+  
+  // Process the message
+  gotMessage(s);
+  
+  // Look for more complete messages
+  parseReadBuffer();
 }
 
 
+void gotMessage(String message) {
+  
+  Serial.println("[RECV]: " + message);
+  
+  if(message == "CONNECTED") {
+    startCycle = true;
+  }
+}
 
 
 long getDistance(int s){

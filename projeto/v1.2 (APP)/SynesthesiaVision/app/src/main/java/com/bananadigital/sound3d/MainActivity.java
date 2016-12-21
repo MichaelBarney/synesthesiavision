@@ -230,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveAudio(char s, float d) {
 
+        //Log.d(TAG, "Audio Saved");
         //LEFT
         if(s == 'a'){
             ds[0] = d;
@@ -251,12 +252,14 @@ public class MainActivity extends AppCompatActivity {
     private void handleMsg2(String r) {
 
         int inx = r.indexOf(DELIMITER);
+        try {
+            String sensor1 = r.substring(0, 1);
+            distance = r.substring(1, inx);
 
-        String sensor1 = r.substring(0, 1);
-        distance = r.substring(1, inx);
-
-        sensor = sensor1.charAt(0);
-
+            sensor = sensor1.charAt(0);
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(TAG, "Erro na Array");
+        }
 
 
         //Log.d(TAG,"[SENSOR]: " + sensor + " [DISTANCE]: "+ distance);
@@ -266,8 +269,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 saveAudio(sensor, Float.valueOf(distance));
             } catch (NumberFormatException e) {
-                e.printStackTrace();
-                Log.e(TAG, "[Incorrect Number Format]" + e);
+                Log.e(TAG, " [Incorrect Number Format]: " + e + " [Number]: " + distance);
             }
             if (sensor == 'c') {
             valor_f.setText("" + distance);
