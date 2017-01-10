@@ -5,12 +5,12 @@
     android:weightSum="1"
     android:background="#cffffc">
     <TextView
-        android:text="Select Device:"
+        android:text="@string/dispositivos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textView"
         android:layout_alignParentRight="true"
-        android:textSize="50sp"
+        android:textSize="36sp"
         android:layout_marginBottom="10dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
@@ -40,17 +40,18 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="74dp"
-            android:text="SELECT THE DEVICE"
             android:id="@+id/connect_text"
             android:gravity="center"
             android:layout_gravity="center_vertical"
-            android:textSize="25dp" />
+            android:textSize="25dp"
+            android:text="@string/dispositivos" />
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/connect_img"
-            android:src="@drawable/up" />
+            android:src="@drawable/up"
+            android:contentDescription="@string/seta" />
     </LinearLayout>
     </LinearLayout>
 

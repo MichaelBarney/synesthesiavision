@@ -1,9 +1,9 @@
 package com.bananadigital.sound3d;
 
 import android.content.Context;
-import android.content.Intent;
-import android.media.AudioManager;
+import android.media.AudioAttributes;
 import android.media.SoundPool;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,6 +22,8 @@ import android.widget.Toast;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.media.AudioManager.STREAM_MUSIC;
+
 //Modificado para 3 Sensores
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     Context c;
 
     SoundPool soundPool;
+    SoundPool sP;
     private int sf;
 
     Timer timer = new Timer();
@@ -66,14 +69,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        //bt_connect.blueThread.setHandler(mHandler);
         writeHandler = ConnectBluetooth.btt.getWriteHandler();
         ConnectBluetooth.btt.setReadHandler(readHandler);
-        c = this;
         setContentView(R.layout.activity_main);
 
         //sound
-        soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            soundPool = new SoundPool.Builder()
+                                .setAudioAttributes(new AudioAttributes.Builder()
+                                        .setUsage(AudioAttributes.USAGE_UNKNOWN)
+                                        .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                                        .build())
+                                .setMaxStreams(10)
+                                .build();
+        } else {
+            soundPool = new SoundPool(10, STREAM_MUSIC, 0);
+        }
+
+
         soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
@@ -84,28 +97,17 @@ public class MainActivity extends AppCompatActivity {
         });
         sf = soundPool.load(this, R.raw.bu, 2);
 
-        //timer
-        /*task = new TimerTask() {
-            @Override
-            public void run() {
-                c_s ++;
-                if(c_s == n_s + 1) c_s = 0;
-                if((check.isChecked() && c_s == 2) || (!check.isChecked() && (c_s == 0 || c_s == 2 || c_s == 4))) {
-                    playAudio(c_s);
-                }
-            }
-        };*/
 
         //Layout
         //valor da frente
-        valor_f = (TextView) findViewById(R.id.valor_f);
+        /*valor_f = (TextView) findViewById(R.id.valor_f);
         valor_e = (TextView) findViewById(R.id.valor_e);
         valor_d = (TextView) findViewById(R.id.valor_d);
 
         volume_f = (TextView) findViewById(R.id.volume_f);
         volume_e = (TextView) findViewById(R.id.volume_e);
         volume_d = (TextView) findViewById(R.id.volume_d);
-
+        */
         //Button
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new Button.OnClickListener(){
@@ -114,15 +116,6 @@ public class MainActivity extends AppCompatActivity {
                 turnOnTimer();
                 timer.schedule(task, 0, time);
                 Log.d(TAG, "Clicked!");
-            }
-        });
-
-        Button extras = (Button) findViewById(R.id.extras);
-        extras.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(c, Tests.class);
-                startActivity(intent);
             }
         });
 
@@ -162,6 +155,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();  // Always call the superclass method first
+        soundPool.pause(sf);
+    }
 
     private void stopTimer() {
         timer.cancel();
@@ -249,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
     String distance = "";
     char sensor = '*';
 
-    private void handleMsg2(String r) {
+    private void handleMsg(String r) {
 
         int inx = r.indexOf(DELIMITER);
         try {
@@ -272,14 +275,14 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, " [Incorrect Number Format]: " + e + " [Number]: " + distance);
             }
             if (sensor == 'c') {
-            valor_f.setText("" + distance);
-            volume_f.setText(String.format("%.02f", fv));
+            //valor_f.setText("" + distance);
+            //volume_f.setText(String.format("%.02f", fv));
             } else if (sensor == 'a') {
-                valor_d.setText("" + distance);
-                volume_d.setText(String.format("%.02f", dv));
+                //valor_d.setText("" + distance);
+                //volume_d.setText(String.format("%.02f", dv));
             } else if (sensor == 'e') {
-                valor_e.setText("" + distance);
-                volume_e.setText(String.format("%.02f", ev));
+                //valor_e.setText("" + distance);
+                //volume_e.setText(String.format("%.02f", ev));
             }
             distance = "";
         }
@@ -298,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
             //Log.i(TAG, "[RECV IN MAIN]: " + s);
             //handleMsg(s);
             s += DELIMITER;
-            handleMsg2(s);
+            handleMsg(s);
             if (s.equals("DISCONNECT")) {
                 Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
                 ConnectBluetooth.btt.write("DISCONNECTED");
@@ -329,22 +332,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    @Override
-    public void onPause() {
-        super.onPause();  // Always call the superclass method first
-        soundPool.pause(sf);
-        if(ConnectBluetooth.btt != null) {
-            //ConnectBluetooth.btt = null;
-            //ConnectBluetooth.btt.disconnect();
-        }
-        Log.e("", "PAUSED");
-        // Release the Camera because we don't need it when paused
-        // and other activities might need to use it.
-    }
-
-
-
-
-
-
 }

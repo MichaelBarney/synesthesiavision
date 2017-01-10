@@ -24,7 +24,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
 
     private static final String TAG = "ConnectBluetooth";
-    public static BluetoothThreadV2 btt;
+    public static BluetoothThread btt;
     private BluetoothAdapter btAdapter;
     private Set<BluetoothDevice> pairedDevices;
     private ListView list_bt;
@@ -33,7 +33,6 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private TextView statusConnection;
 
     public static final String Storage = "storage";
-    private static String adress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,34 +76,46 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         }
     }
 
-
+    /**
+     * Conecta automaticamente se houver um endereço de dispositivo já salvo anteriormente
+     */
     private void autoConnect(){
 
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
         String address = bt_name.getString("bt_address", "*");
         Log.d(TAG, address);
+        Toast.makeText(getApplicationContext(),"Conectando", Toast.LENGTH_SHORT).show();
         if(address != "*"){
             list_bt.setEnabled(false);
             BluetoothDevice bt = btAdapter.getRemoteDevice(address);
-            btt = new BluetoothThreadV2(address, mHandler);
+            btt = new BluetoothThread(address, mHandler);
             btt.start();
-            //blueThread = new BluetoothThread(bt,mHandler, BA);
-            //blueThread.start();
+
         }
     }
 
-
-    void saveAddress(String a){
+    /**
+     * Salva o endereço do dispositivo pressionado caso haja uma conexão bem sucedida
+     * @param address
+     */
+    void saveAddress(String address){
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
         SharedPreferences.Editor editor = bt_name.edit();
-        editor.putString("bt_address", a);
+        editor.putString("bt_address", address);
 
         // Commit the edits!
         editor.commit();
 
-        Log.d("saved", a);
+        Log.d("saved", address);
     }
 
+    /**
+     * Responsável por fazer uma requisição de ativação de bluetooth e tomar as medidas necessárias
+     * caso esta seja aceita ou recusada
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -137,13 +148,20 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         this.finish();
     }
 
+
+    /**
+     * Função que conecta ao dispositivo que foi pressionado no listview
+     * @param adapterView
+     * @param view
+     * @param position
+     * @param id
+     */
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
         String item = (String) list_bt.getAdapter().getItem(position);
         String devName = item.substring(0, item.indexOf("\n"));
         String devAddress = item.substring(item.indexOf("\n") + 1, item.length());
-        adress = devAddress;
 
 
         Log.d(TAG, devName);
@@ -151,18 +169,20 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
         //Toast.makeText(getApplicationContext(),devAddress,Toast.LENGTH_SHORT).show();
 
-        btt = new BluetoothThreadV2(devAddress, mHandler);
+        btt = new BluetoothThread(devAddress, mHandler);
 
         // Run the thread
         btt.start();
 
 
         list_bt.setEnabled(false);
-        saveAddress(adress);
+        saveAddress(devAddress);
 
     }
 
-
+    /**
+     * Responsável por manusear as mensagens vindas da Thread do Bluetooth
+     */
     Handler mHandler = new Handler() {
 
         @Override
@@ -174,7 +194,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                 case "CONNECTED": {
                     //saveAddress(adress);
                     img.setImageDrawable(getResources().getDrawable(R.drawable.check));
-                    statusConnection.setText("CONNECTED!");
+                    statusConnection.setText(R.string.a_conexao);
                     btt.write("CONNECTED");
                     Toast.makeText(getApplicationContext(),"Conectado", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
@@ -184,7 +204,9 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     break;
                 } case "CONNECTING": {
                     img.setImageDrawable(getResources().getDrawable(R.drawable.loading));
-                    statusConnection.setText("CONNECTING...");
+                    img.setContentDescription(getString(R.string.conectando));
+                    Toast.makeText(getApplicationContext(),"Conectando", Toast.LENGTH_SHORT).show();
+                    statusConnection.setText(R.string.conectando);
                     break;
                 } case "DISCONNECTED": {
                     list_bt.setEnabled(true);
@@ -192,7 +214,8 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                 } case "CONNECTION FAILED": {
                     list_bt.setEnabled(true);
                     img.setImageDrawable(getResources().getDrawable(R.drawable.cross));
-                    statusConnection.setText("FAILLED");
+                    img.setContentDescription(getString(R.string.f_conexao));
+                    statusConnection.setText(R.string.f_conexao);
                     btt = null;
                     break;
                 }
