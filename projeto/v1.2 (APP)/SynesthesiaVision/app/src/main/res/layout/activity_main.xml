@@ -1,61 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#cffffc"
     android:weightSum="1">
-
-    <RelativeLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="175dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-
-        <Button
-            android:text="@string/desconectar"
-            android:id="@+id/button"
-            android:background="@drawable/round_button"
-            android:layout_height="100dp"
-            android:textSize="12sp"
-            android:textColor="@color/background_floating_material_light"
-            android:layout_width="100dp"
-            android:layout_marginLeft="15dp"
-            android:layout_marginStart="15dp"
-            android:layout_alignTop="@+id/button_start"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:onClick="disconnect"/>
-
-        <Button
-            android:text="@string/iniciar"
-            android:id="@+id/button_start"
-            android:background="@drawable/round_button"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:textSize="14sp"
-            android:textColor="@color/background_floating_material_light"
-            android:layout_marginRight="12dp"
-            android:layout_marginEnd="12dp"
-            android:contentDescription="@string/comecar"
-            android:layout_weight="0.21"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginBottom="15dp" />
-    </RelativeLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView3"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="37dp">
-
-    </LinearLayout>
 
     <TextView
         android:text="@string/frequencia"
@@ -76,6 +25,13 @@
         android:layout_below="@+id/textView2"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true">
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtSpeechInput"
+            android:layout_weight="1" />
 
         <SeekBar
             android:layout_width="match_parent"
@@ -134,6 +90,57 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="175dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <Button
+            android:text="@string/desconectar"
+            android:id="@+id/button"
+            android:background="@drawable/round_button"
+            android:layout_height="100dp"
+            android:textSize="12sp"
+            android:textColor="@color/background_floating_material_light"
+            android:layout_width="100dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginStart="15dp"
+            android:layout_alignTop="@+id/button_start"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="disconnect"/>
+
+        <Button
+            android:text="@string/iniciar"
+            android:id="@+id/button_start"
+            android:background="@drawable/round_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:textSize="14sp"
+            android:textColor="@color/background_floating_material_light"
+            android:layout_marginRight="12dp"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/comecar"
+            android:layout_weight="0.21"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="15dp" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ico_mic"
+            android:id="@+id/btnSpeak"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="@string/comando_voz"/>
+
+    </RelativeLayout>
 
 
 </RelativeLayout>

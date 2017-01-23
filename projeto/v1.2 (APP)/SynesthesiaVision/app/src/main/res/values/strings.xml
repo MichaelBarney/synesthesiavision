@@ -14,4 +14,9 @@
     <string name="tempo_total_acc">tempo total do ciclo</string>
     <string name="tempo_sensor">Tempo por sensor (ms):</string>
     <string name="tempo_sensor_acc">tempo por sensor em milissegundos</string>
+    <string name="comando_voz">Comandos de voz</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="speech_prompt">Diga o comando&#8230;</string>
+    <string name="speech_not_supported">Sorry! Your device doesn\'t support speech input</string>
+    <string name="tap_on_mic">Tap on mic to speak</string>
 </resources>
