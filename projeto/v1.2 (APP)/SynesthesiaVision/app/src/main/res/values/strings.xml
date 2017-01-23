@@ -7,6 +7,11 @@
     <string name="f_conexao">Falha na Conexão</string>
     <string name="a_conexao">Conectado</string>
     <string name="comecar">iniciar a transmissão do som</string>
-    <string name="tempo_sensor">tempo por sensor em milissegundos</string>
-    <string name="tempo_total">tempo total do ciclo</string>
+    <string name="iniciar">Iniciar</string>
+    <string name="desconectar">Desconectar</string>
+    <string name="frequencia">Frequência</string>
+    <string name="tempo_total">Tempo total (s):</string>
+    <string name="tempo_total_acc">tempo total do ciclo</string>
+    <string name="tempo_sensor">Tempo por sensor (ms):</string>
+    <string name="tempo_sensor_acc">tempo por sensor em milissegundos</string>
 </resources>

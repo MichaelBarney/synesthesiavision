@@ -1,6 +1,6 @@
 package com.bananadigital.sound3d;
 
-import android.content.Context;
+import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Build;
@@ -14,7 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,44 +30,42 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG1 = "Teste1";
     private static final String TAG2 = "Teste2";
     private static final char DELIMITER = '\n';
-    Context c;
+    private static final int TIME_MAX = 500;
+    private static final int MIN = 50 ;
 
-    SoundPool soundPool;
-    SoundPool sP;
+    private SoundPool soundPool;
     private int sf;
 
-    Timer timer = new Timer();
-    int time = 250; //miliseconds
-    TimerTask task;
+    private Timer timer;
+    private int time = 250; //miliseconds
+    private TimerTask task;
 
     private Handler writeHandler;
 
-    int n_s = 3; //number of sensors
-    int c_s = 0; //current sensor
+    private TextView tempo_total;
+    private TextView tempo_sensor;
+
+    private int n_s = 3; //number of sensors
+    private int c_s = 0; //current sensor
 
     float[] ds = new float[n_s];
 
-    //Layout
-    SeekBar seek;
-    Button button;
-    TextView ps;
-    TextView total;
+    /*TextView ps;
     TextView valor_f;
     TextView valor_e;
     TextView valor_d;
     CheckBox check;
     TextView volume_f;
     TextView volume_e;
-    TextView volume_d;
-    float fv;
-    float ev;
-    float dv;
+    TextView volume_d;*/
+    private float fv;
+    private float ev;
+    private float dv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         writeHandler = ConnectBluetooth.btt.getWriteHandler();
         ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
@@ -109,48 +106,45 @@ public class MainActivity extends AppCompatActivity {
         volume_d = (TextView) findViewById(R.id.volume_d);
         */
         //Button
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new Button.OnClickListener(){
+        Button button_start = (Button) findViewById(R.id.button_start);
+        button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
                 turnOnTimer();
+                timer = new Timer();
                 timer.schedule(task, 0, time);
                 Log.d(TAG, "Clicked!");
             }
         });
 
-        //CheckBox
-        check = (CheckBox) findViewById(R.id.checkBox);
-        //SeeBar
-        seek = (SeekBar) findViewById(R.id.frequency);
-        seek.setProgress(time);
-        ps = (TextView) findViewById(R.id.ps);
-        ps.setText("" + time);
-        total = (TextView) findViewById(R.id.total);
-        total.setText("" + ((float)(time * n_s)/1000));
-        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        tempo_sensor = (TextView) findViewById(R.id.tempo_sensor);
+        tempo_total = (TextView) findViewById(R.id.tempo_total);
+
+
+        SeekBar frequency = (SeekBar) findViewById(R.id.frequency);
+        frequency.setMax(TIME_MAX);
+        frequency.setProgress(time);
+        tempo_sensor.setText("" + time);
+        tempo_total.setText("" + ((float)(time * n_s)/1000));
+        frequency.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress != 0) {
-                    time = progress;
-                    ps.setText("" + time);
-                    total.setText("" + ((float) (time * n_s) / 1000));
-                } else {
-                    Toast.makeText(getApplicationContext(), "Valor Inválido",
-                            Toast.LENGTH_LONG).show();
-                }
+                if (progress < MIN) time = progress + 100;
+                else time = progress;
+                tempo_sensor.setText("" + time);
+                tempo_total.setText("" + ((float)(time * n_s)/1000));
+                stopTimer();
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 stopTimer();
-                Log.d(TAG, "Started");
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                turnOnTimer();
-                Log.d(TAG, "Stopped");
+                timer = new Timer();
+                timer.schedule(task, time);
             }
         });
     }
@@ -163,16 +157,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
-        soundPool.pause(sf);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void stopTimer() {
-        timer.cancel();
-        timer.purge();
-        timer = null;
-        task.cancel();
-        task = null;
-        timer = new Timer();
+        if(timer != null && task != null) {
+            timer.cancel();
+            timer.purge();
+            timer = null;
+            task.cancel();
+            task = null;
+        }
     }
 
     private void turnOnTimer() {
@@ -190,10 +189,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
     int dmax = 200;
-    public void playAudio(int s) {
+    private void playAudio(int s) {
         //calcula a itensidade proporcional de p para a distancia
         float v;
         float d = ds[s];
@@ -268,22 +265,17 @@ public class MainActivity extends AppCompatActivity {
         //Log.d(TAG,"[SENSOR]: " + sensor + " [DISTANCE]: "+ distance);
 
         if (!distance.isEmpty()) {
-
-            try {
                 saveAudio(sensor, Float.valueOf(distance));
-            } catch (NumberFormatException e) {
-                Log.e(TAG, " [Incorrect Number Format]: " + e + " [Number]: " + distance);
-            }
-            if (sensor == 'c') {
-            //valor_f.setText("" + distance);
-            //volume_f.setText(String.format("%.02f", fv));
+            /*if (sensor == 'c') {
+            valor_f.setText("" + distance);
+            volume_f.setText(String.format("%.02f", fv));
             } else if (sensor == 'a') {
-                //valor_d.setText("" + distance);
-                //volume_d.setText(String.format("%.02f", dv));
+                valor_d.setText("" + distance);
+                volume_d.setText(String.format("%.02f", dv));
             } else if (sensor == 'e') {
-                //valor_e.setText("" + distance);
-                //volume_e.setText(String.format("%.02f", ev));
-            }
+                valor_e.setText("" + distance);
+                volume_e.setText(String.format("%.02f", ev));
+            }*/
             distance = "";
         }
 
@@ -296,19 +288,37 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
-            String s = msg.obj.toString();
-
-            //Log.i(TAG, "[RECV IN MAIN]: " + s);
-            //handleMsg(s);
-            s += DELIMITER;
-            handleMsg(s);
-            if (s.equals("DISCONNECT")) {
+            String received = msg.obj.toString();
+            if (received.equals("DISCONNECT")) {
                 Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
                 ConnectBluetooth.btt.write("DISCONNECTED");
             }
+            received += DELIMITER;
+            handleMsg(received);
         }
 
     };
+
+    public void disconnect(View view) {
+        ConnectBluetooth.btt.write("DISCONNECTED");
+        if(ConnectBluetooth.btt != null) {
+            ConnectBluetooth.btt.interrupt();
+            ConnectBluetooth.btt = null;
+            startConnectBluetooth();
+        }
+    }
+
+
+    private void startConnectBluetooth(){
+
+        Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
+        writeHandler = null;
+        Log.d(TAG, "WriteHandler ended");
+        Intent intent = new Intent(getApplicationContext(),ConnectBluetooth.class);
+        startActivity(intent);
+        this.finish();
+    }
+
 
     ///// ---------EXTRAS----------------
     @Override

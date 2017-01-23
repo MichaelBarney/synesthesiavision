@@ -84,13 +84,13 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
         String address = bt_name.getString("bt_address", "*");
         Log.d(TAG, address);
-        Toast.makeText(getApplicationContext(),"Conectando", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Conectando ao dispositivo", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Conectando", Toast.LENGTH_SHORT).show();
         if(address != "*"){
             list_bt.setEnabled(false);
             BluetoothDevice bt = btAdapter.getRemoteDevice(address);
             btt = new BluetoothThread(address, mHandler);
             btt.start();
-
         }
     }
 

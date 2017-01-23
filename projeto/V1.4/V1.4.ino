@@ -19,6 +19,8 @@ int sensors[G][N];
 String alph = "abcdefghijklmnopqrstuvwxyz";
 String received = "";
 
+char DELIMITER = '\n';
+
 void setup() {
   //Begin Serial
   Serial.begin (9600);

@@ -43,7 +43,7 @@ void setup() {
 
 void loop() {
 
-  /*if(Serial.available() && !startCycle) {
+  /*if(Serial.available()) {
     
     while(Serial.available()) {
       received += (char)Serial.read();
@@ -60,9 +60,7 @@ void loop() {
        }
     }
   //}
-    //Serial.println("hello");
-  //Serial.println('a');
-  //Serial.println (getDistance(1));
+  
 }
 
 
@@ -90,10 +88,12 @@ void parseReadBuffer() {
 
 void gotMessage(String message) {
   
-  Serial.println("[RECV]: " + message);
+  //Serial.println("[RECV]: " + message);
   
   if(message == "CONNECTED") {
     startCycle = true;
+  } else if (message == "DISCONNECTED") {
+    startCycle = false;
   }
 }
 
