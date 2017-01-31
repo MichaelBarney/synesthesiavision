@@ -1,14 +1,13 @@
 package com.bananadigital.sound3d;
 
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -21,16 +20,24 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.Locale;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import edu.cmu.pocketsphinx.Assets;
+import edu.cmu.pocketsphinx.Hypothesis;
+import edu.cmu.pocketsphinx.RecognitionListener;
+import edu.cmu.pocketsphinx.SpeechRecognizer;
+import edu.cmu.pocketsphinx.SpeechRecognizerSetup;
 
 import static android.media.AudioManager.STREAM_MUSIC;
 
 //Modificado para 3 Sensores
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        RecognitionListener {
     private static final String TAG = "MainActivity" ;
     private static final String TAG1 = "Teste1";
     private static final String TAG2 = "Teste2";
@@ -38,6 +45,25 @@ public class MainActivity extends AppCompatActivity {
     private static final int TIME_MAX = 500;
     private static final int MIN = 50 ;
 
+
+    //Necessary for voice recognition
+
+    private static final String KWS_SEARCH = "wakeup";
+    private static final String FORECAST_SEARCH = "forecast";
+    private static final String DIGITS_SEARCH = "digits";
+    private static final String PHONE_SEARCH = "phones";
+    private static final String MENU_SEARCH = "menu";
+
+    /* Keyword we are looking for to activate menu */
+    private static final String KEYPHRASE = "ok google";
+
+    /* Used to handle permission request */
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
+
+    private SpeechRecognizer recognizer;
+    private HashMap<String, Integer> captions;
+
+    //Variables
     private SoundPool soundPool;
     private int sf;
 
@@ -80,7 +106,15 @@ public class MainActivity extends AppCompatActivity {
         //writeHandler = ConnectBluetooth.btt.getWriteHandler();
         //ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
-        startListening();
+
+        //Recognition
+        captions = new HashMap<String, Integer>();
+        captions.put(KWS_SEARCH, R.string.kws_caption);
+        captions.put(MENU_SEARCH, R.string.menu_caption);
+        captions.put(DIGITS_SEARCH, R.string.digits_caption);
+        captions.put(PHONE_SEARCH, R.string.phone_caption);
+        captions.put(FORECAST_SEARCH, R.string.forecast_caption);
+
 
         //sound
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -129,19 +163,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        tempo_sensor = (TextView) findViewById(R.id.tempo_sensor);
-        tempo_total = (TextView) findViewById(R.id.tempo_total);
-        btnSpeak = (ImageButton) findViewById(R.id.btnSpeak);
-        txtSpeechInput = (TextView) findViewById(R.id.txtSpeechInput);
-
-
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                promptSpeechInput();
-            }
-        });
 
         SeekBar frequency = (SeekBar) findViewById(R.id.frequency);
         frequency.setMax(TIME_MAX);
@@ -169,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
                 timer.schedule(task, time);
             }
         });
+
+        runRecognizerSetup();
     }
 
     @Override
@@ -184,55 +207,149 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (recognizer != null) {
+            recognizer.cancel();
+            recognizer.shutdown();
+        }
+    }
+
+    private void runRecognizerSetup() {
+        // Recognizer initialization is a time-consuming and it involves IO,
+        // so we execute it in async task
+        new AsyncTask<Void, Void, Exception>() {
+            @Override
+            protected Exception doInBackground(Void... params) {
+                try {
+                    Assets assets = new Assets(MainActivity.this);
+                    File assetDir = assets.syncAssets();
+                    setupRecognizer(assetDir);
+                } catch (IOException e) {
+                    return e;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Exception result) {
+                if (result != null) {
+                    //((TextView) findViewById(R.id.caption_text)).setText("Failed to init recognizer " + result);
+                } else {
+                    switchSearch(KWS_SEARCH);
+                }
+            }
+        }.execute();
     }
 
 
-    /**
-     * Showing google speech input dialog
-     * */
-   /* private void promptSpeechInput() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                getString(R.string.speech_prompt));
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.speech_not_supported),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }*/
-
-    /**
-     * Receiving speech input
-     * */
-    /*
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onPartialResult(Hypothesis hypothesis) {
+        if (hypothesis == null)
+            return;
 
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && data != null) {
-
-                    ArrayList<String> result = data
-                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    txtSpeechInput.setText(result.get(0));
-
-                    if(result.contains("iniciar")) {
-                        Toast.makeText(this, "Iniciado", Toast.LENGTH_SHORT).show();
-                    }
-
-                }
+        String text = hypothesis.getHypstr();
+        switch (text) {
+            case KEYPHRASE:
+                switchSearch(MENU_SEARCH);
                 break;
-            }
-
+            case DIGITS_SEARCH:
+                switchSearch(DIGITS_SEARCH);
+                break;
+            case PHONE_SEARCH:
+                switchSearch(PHONE_SEARCH);
+                break;
+            case FORECAST_SEARCH:
+                switchSearch(FORECAST_SEARCH);
+                break;
+            default:
+                ((TextView) findViewById(R.id.result_text)).setText(text);
+                break;
         }
-    }*/
+    }
 
+    /**
+     * This callback is called when we stop the recognizer.
+     */
+    @Override
+    public void onResult(Hypothesis hypothesis) {
+        ((TextView) findViewById(R.id.result_text)).setText("");
+        if (hypothesis != null) {
+            String text = hypothesis.getHypstr();
+            makeToast(text);
+        }
+    }
+
+    @Override
+    public void onBeginningOfSpeech() {
+    }
+
+    /**
+     * We stop recognizer here to get a final result
+     */
+    @Override
+    public void onEndOfSpeech() {
+        if (!recognizer.getSearchName().equals(KWS_SEARCH))
+            switchSearch(KWS_SEARCH);
+    }
+
+    private void switchSearch(String searchName) {
+        recognizer.stop();
+
+        // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
+        if (searchName.equals(KWS_SEARCH))
+            recognizer.startListening(searchName);
+        else
+            recognizer.startListening(searchName, 10000);
+
+        String caption = getResources().getString(captions.get(searchName));
+    }
+
+    private void setupRecognizer(File assetsDir) throws IOException {
+        // The recognizer can be configured to perform multiple searches
+        // of different kind and switch between them
+
+        recognizer = SpeechRecognizerSetup.defaultSetup()
+                .setAcousticModel(new File(assetsDir, "en-us-ptm"))
+                .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
+
+                .setRawLogDir(assetsDir) // To disable logging of raw audio comment out this call (takes a lot of space on the device)
+
+                .getRecognizer();
+        recognizer.addListener(this);
+
+        /** In your application you might not need to add all those searches.
+         * They are added here for demonstration. You can leave just one.
+         */
+
+        // Create keyword-activation search.
+        recognizer.addKeyphraseSearch(KWS_SEARCH, KEYPHRASE);
+
+        // Create grammar-based search for selection between demos
+        File menuGrammar = new File(assetsDir, "menu.gram");
+        recognizer.addGrammarSearch(MENU_SEARCH, menuGrammar);
+
+        // Create grammar-based search for digit recognition
+        File digitsGrammar = new File(assetsDir, "digits.gram");
+        recognizer.addGrammarSearch(DIGITS_SEARCH, digitsGrammar);
+
+        // Create language model search
+        File languageModel = new File(assetsDir, "weather.dmp");
+        recognizer.addNgramSearch(FORECAST_SEARCH, languageModel);
+
+        // Phonetic search
+        File phoneticModel = new File(assetsDir, "en-phone.dmp");
+        recognizer.addAllphoneSearch(PHONE_SEARCH, phoneticModel);
+    }
+
+    @Override
+    public void onError(Exception error) {
+        //((TextView) findViewById(R.id.caption_text)).setText(error.getMessage());
+    }
+
+    @Override
+    public void onTimeout() {
+        switchSearch(KWS_SEARCH);
+    }
 
     private void stopTimer() {
         if(timer != null && task != null) {
@@ -389,55 +506,15 @@ public class MainActivity extends AppCompatActivity {
         this.finish();
     }
 
-    private void startListening() {
-        if(mSpeechManager==null)
-        {
-            setSpeechListener();
-        }
-        else if(!mSpeechManager.ismIsListening())
-        {
-            mSpeechManager.destroy();
-            setSpeechListener();
-        }
-        makeToast("You can speak now");
-
-    }
-
-    private void setSpeechListener() {
-        mSpeechManager = new SpeechRecognizerManager(this, new SpeechRecognizerManager.onResultsReady() {
-            @Override
-            public void onResults(ArrayList<String> results) {
-
-
-
-                if(results!=null && results.size()>0)
-                {
-
-                    if(results.size()== 1)
-                    {
-                        mSpeechManager.destroy();
-                        mSpeechManager = null;
-
-                    }
-                    else {
-                        StringBuilder sb = new StringBuilder();
-                        if (results.size() > 5) {
-                            results = (ArrayList<String>) results.subList(0, 5);
-                        }
-                        for (String result : results) {
-                            sb.append(result).append("\n");
-                        }
-                    }
-                }
-                else makeToast("No results found");
-            }
-        });
-    }
-
     private void makeToast (String message){
 
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+
+
+
+
+
 
     ///// ---------EXTRAS----------------
     @Override

@@ -17,130 +17,57 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="18dp" />
 
-    <LinearLayout
-        android:orientation="vertical"
+    <Button
+        android:text="@string/desconectar"
+        android:id="@+id/button"
+        android:background="@drawable/round_button"
+        android:layout_height="100dp"
+        android:textSize="12sp"
+        android:textColor="@color/background_floating_material_light"
+        android:layout_width="100dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginStart="15dp"
+        android:layout_alignTop="@+id/button_start"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:onClick="disconnect"/>
+
+    <Button
+        android:text="@string/iniciar"
+        android:id="@+id/button_start"
+        android:background="@drawable/round_button"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:textSize="14sp"
+        android:textColor="@color/background_floating_material_light"
+        android:layout_marginRight="12dp"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="@string/comecar"
+        android:layout_weight="0.21"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="15dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ico_mic"
+        android:id="@+id/btnSpeak"
+        android:contentDescription="@string/comando_voz"
+        android:layout_marginBottom="14dp"
+        android:layout_above="@+id/button"
+        android:layout_centerHorizontal="true" />
+
+    <SeekBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="71dp"
+        android:id="@+id/frequency"
+        android:layout_weight="1"
         android:layout_below="@+id/textView2"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-
-        <TextView
-            android:text="TextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtSpeechInput"
-            android:layout_weight="1" />
-
-        <SeekBar
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/frequency"
-            android:layout_below="@+id/linearLayout"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_weight="1"
-            android:layout_marginBottom="40dp" />
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
-
-            <TextView
-                android:text="@string/tempo_total"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/textView11"
-                android:layout_weight="0.33"
-                android:contentDescription="@string/tempo_total_acc" />
-
-            <TextView
-                android:text="TextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/tempo_total"
-                android:layout_weight="1"
-                android:textAlignment="center" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:paddingTop="20dp">
-
-            <TextView
-                android:text="@string/tempo_sensor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/textView9"
-                android:contentDescription="@string/tempo_sensor_acc" />
-
-            <TextView
-                android:text="TextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/tempo_sensor"
-                android:layout_weight="0.07" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <RelativeLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="175dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-
-        <Button
-            android:text="@string/desconectar"
-            android:id="@+id/button"
-            android:background="@drawable/round_button"
-            android:layout_height="100dp"
-            android:textSize="12sp"
-            android:textColor="@color/background_floating_material_light"
-            android:layout_width="100dp"
-            android:layout_marginLeft="15dp"
-            android:layout_marginStart="15dp"
-            android:layout_alignTop="@+id/button_start"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:onClick="disconnect"/>
-
-        <Button
-            android:text="@string/iniciar"
-            android:id="@+id/button_start"
-            android:background="@drawable/round_button"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:textSize="14sp"
-            android:textColor="@color/background_floating_material_light"
-            android:layout_marginRight="12dp"
-            android:layout_marginEnd="12dp"
-            android:contentDescription="@string/comecar"
-            android:layout_weight="0.21"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginBottom="15dp" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ico_mic"
-            android:id="@+id/btnSpeak"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:contentDescription="@string/comando_voz"/>
-
-    </RelativeLayout>
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="29dp" />
 
 
 </RelativeLayout>
