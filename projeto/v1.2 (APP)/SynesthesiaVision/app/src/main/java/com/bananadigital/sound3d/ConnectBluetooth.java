@@ -17,10 +17,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 
-public class ConnectBluetooth extends AppCompatActivity implements ListView.OnItemClickListener{
+public class ConnectBluetooth extends AppCompatActivity implements ListView.OnItemClickListener,
+        SpeechRecognizerManager.OnResultListener{
 
 
     private static final String TAG = "ConnectBluetooth";
@@ -32,12 +34,20 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private ImageView img;
     private TextView statusConnection;
 
+    //Used for voice recognition
+    private SpeechRecognizerManager mSpeechRecognizerManager;
+    //Keyphrase to activate voice recognition
+    private static final String KEYPHRASE = "ok google";
+
     public static final String Storage = "storage";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
+
+        mSpeechRecognizerManager =new SpeechRecognizerManager(this, KEYPHRASE);
+        mSpeechRecognizerManager.setOnResultListner(this);
 
         if(btt != null) {
             btt.interrupt();
@@ -222,4 +232,13 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
             }
         }
     };
+
+    @Override
+    public void OnResult(ArrayList<String> commands) {
+
+        for(String command : commands) {
+
+            if(command.equals(""));
+        }
+    }
 }

@@ -39,6 +39,7 @@ public class BluetoothThread extends Thread {
     // Buffer used to parse messages
     private String rx_buffer = "";
 
+
     /**
      * Constructor, takes in the MAC address of the remote Bluetooth device
      * and a Handler for received messages.
