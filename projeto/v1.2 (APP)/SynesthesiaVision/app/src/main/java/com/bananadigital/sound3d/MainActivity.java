@@ -1,5 +1,7 @@
 package com.bananadigital.sound3d;
 
+import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
@@ -7,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -14,7 +17,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.SeekBar;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,21 +48,39 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
 
     //Variables
     private SoundPool soundPool;
-    private int sf;
+    private int soundID;
 
     private Timer timer;
-    private int time = 250; //miliseconds
+    private int time = 100; //miliseconds
     private TimerTask task;
+    private Boolean init = false;
 
     private Handler writeHandler;
 
     private TextView tempo_total;
     private TextView tempo_sensor;
+    private Button button_start;
+    private Button button_disconnect;
+    private Button btnAplicar;
+
+    private EditText edtTempo;
 
     private int n_s = 3; //number of sensors
     private int c_s = 0; //current sensor
 
     float[] ds = new float[n_s];
+
+    private CheckBox chkFrente;
+    private CheckBox chkEsquerda;
+    private CheckBox chkDireita;
+    private CheckBox chkFrenteDireita;
+    private CheckBox chkFrenteEsquerda;
+
+    private Vibrator vibrator;
+    long [] vibratorFrente = {0, 100, 50};
+    long [] vibratorEsquerda = {0, 150, 50};
+    long [] vibratorDireita = {0, 200, 50};
+
 
     /*TextView ps;
     TextView valor_f;
@@ -78,8 +100,8 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        //writeHandler = ConnectBluetooth.btt.getWriteHandler();
-        //ConnectBluetooth.btt.setReadHandler(readHandler);
+        writeHandler = ConnectBluetooth.btt.getWriteHandler();
+        ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
 
         //Voice Recognition
@@ -87,29 +109,15 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         mSpeechRecognizerManager.setOnResultListner(this);
 
         //sound
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            soundPool = new SoundPool.Builder()
-                                .setAudioAttributes(new AudioAttributes.Builder()
-                                        .setUsage(AudioAttributes.USAGE_UNKNOWN)
-                                        .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-                                        .build())
-                                .setMaxStreams(10)
-                                .build();
-        } else {
-            soundPool = new SoundPool(10, STREAM_MUSIC, 0);
-        }
+        createSoundPool();
 
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                if(sampleId == sf){
-                    soundPool.play(sf, 0, 0, 0, -1, 1.0f); //id, //volume E// volume D // Prioridade// loop // rate
-                }
-            }
-        });
-        sf = soundPool.load(this, R.raw.bu, 2);
+        chkDireita = (CheckBox) findViewById(R.id.chkDireita);
+        chkEsquerda = (CheckBox) findViewById(R.id.chkEsquerda);
+        chkFrente = (CheckBox) findViewById(R.id.chkFrente);
 
+        edtTempo = (EditText) findViewById(R.id.edtTempo);
 
         //Layout
         //valor da frente
@@ -122,45 +130,39 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         volume_d = (TextView) findViewById(R.id.volume_d);
         */
         //Button
-        Button button_start = (Button) findViewById(R.id.button_start);
+        button_start = (Button) findViewById(R.id.button_start);
+        button_disconnect = (Button) findViewById(R.id.btn_disconnect);
+        btnAplicar = (Button) findViewById(R.id.btnOk);
+
         button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
-                turnOnTimer();
-                timer = new Timer();
-                timer.schedule(task, 0, time);
-                Log.d(TAG, "Clicked!");
+                if(!init) {
+                    turnOnTimer();
+                    timer = new Timer();
+                    timer.schedule(task, 0, time);
+                    Log.d(TAG, "Clicked!");
+                }
+            }
+        });
+        button_disconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                disconnect();
             }
         });
 
-
-        SeekBar frequency = (SeekBar) findViewById(R.id.frequency);
-        frequency.setMax(TIME_MAX);
-        frequency.setProgress(time);
-        //tempo_sensor = (TextView) findViewById(R.id.tempo_total);
-        //tempo_sensor.setText("" + time);
-        //tempo_total.setText("" + ((float)(time * n_s)/1000));
-        frequency.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        btnAplicar.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress < MIN) time = progress + 100;
-                else time = progress;
-                //tempo_sensor.setText("" + time);
-                //tempo_total.setText("" + ((float)(time * n_s)/1000));
+            public void onClick(View v) {
                 stopTimer();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                stopTimer();
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                timer = new Timer();
-                timer.schedule(task, time);
+                if(!edtTempo.getText().toString().equals("")) {
+                    time = Integer.parseInt(edtTempo.getText().toString());
+                }
+                Log.d("TEMPO", "Tempo ajustado para: " + time);
             }
         });
+
 
     }
 
@@ -172,6 +174,46 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
+        soundPool.release();
+    }
+
+    protected void createSoundPool() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            createNewSoundPool();
+        } else {
+            createOldSoundPool();
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    protected void createNewSoundPool(){
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundPool = new SoundPool.Builder()
+                .setAudioAttributes(attributes)
+                .build();
+
+        startSoundPool();
+    }
+
+    @SuppressWarnings("deprecation")
+    protected void createOldSoundPool(){
+        soundPool = new SoundPool(10, STREAM_MUSIC, 0);
+        startSoundPool();
+    }
+
+    private void startSoundPool() {
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                if(sampleId == soundID){
+                    soundPool.play(soundID, 0, 0, 0, -1, 1.0f); //id, //volume E// volume D // Prioridade// loop // rate
+                }
+            }
+        });
+        soundID = soundPool.load(this, R.raw.bu, 2);
     }
 
     private void stopTimer() {
@@ -181,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
             timer = null;
             task.cancel();
             task = null;
+            Log.d(TAG, "Parado");
         }
     }
 
@@ -188,24 +231,29 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         task = new TimerTask() {
             @Override
             public void run() {
-                Log.d(TAG, "Timer: " + c_s);
+                //Log.d(TAG, "Timer: " + c_s);
                 c_s ++;
                 if(c_s == n_s) {
                     c_s = 0;
                 }
                 playAudio(c_s);
+                Log.d("TEMPO", "tempo: " + time);
             }
         };
+        Log.d(TAG, "Iniciado");
     }
 
+    int dmax = 300;
+    float frequenciaEsquerda = 1.2f;
+    float frequenciaDireita = 1.2f;
+    float frequenciaFrente = 1.2f;
 
-    int dmax = 200;
     private void playAudio(int s) {
         //calcula a itensidade proporcional de p para a distancia
         float v;
         float d = ds[s];
 
-        Log.d(TAG, "" + String.valueOf(d));
+        //Log.d(TAG, "" + String.valueOf(d));
 
         if(d <= dmax) v =  1 - (d/dmax);
         else{v = 0.01f;}
@@ -215,25 +263,28 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         // 2 == RIGHT
 
         //LEFT
-        if(s == 2){
-            soundPool.setVolume(sf, v, 0);
-            soundPool.setRate(sf, 0.6f);
+        if(s == 2  && chkEsquerda.isChecked()){
+
+            soundPool.setVolume(soundID, v, 0);
+            soundPool.setRate(soundID, frequenciaEsquerda);
             ev = v;
-            Log.d(TAG, "RIGHT " + d + " " + v);
+            Log.d("LEFT", "LEFT " + d + " " + v);
         }
         //FRONT
-        else if(s == 1){
-            soundPool.setVolume(sf, v/2, v/2);
-            soundPool.setRate(sf, 1.0f);
+        else if(s == 1 && chkFrente.isChecked()){
+
+            soundPool.setVolume(soundID, v/2, v/2);
+            soundPool.setRate(soundID, frequenciaFrente);
             fv = v/2;
-            Log.d(TAG, "FRONT " + d + " " + v);
+            Log.d("FRONT", "FRONT " + d + " " + v);
         }
         //RIGHT
-        else if(s == 0){
-            soundPool.setVolume(sf, 0, v);
-            soundPool.setRate(sf, 1.4f);
+        else if(s == 0 && chkDireita.isChecked()){
+
+            soundPool.setVolume(soundID, 0, v);
+            soundPool.setRate(soundID, frequenciaDireita);
             dv = v;
-            Log.d(TAG, "LEFT " + d + " " + v);
+            Log.d("RIGHT", "RIGHT " + d + " " + v);
         }
     }
 
@@ -242,17 +293,28 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
 
         //Log.d(TAG, "Audio Saved");
         //LEFT
+
+
+        //LEFT
         if(s == 'a'){
+          //for(int i = 0; i < 4; i++)  ds[i] = d;
+
             ds[0] = d;
+
+
         }
         //FRONT
         else if(s == 'c'){
             ds[1] = d;
+            //for(int i = 4; i < 8; i++)  ds[i] = d;
         }
         //RIGHT
         else if(s == 'e'){
             ds[2] = d;
+            //for(int i = 8; i < 12; i++)  ds[i] = d;
         }
+
+
     }
     ////-----HANDLER---
 
@@ -275,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         //Log.d(TAG,"[SENSOR]: " + sensor + " [DISTANCE]: "+ distance);
 
         if (!distance.isEmpty()) {
-                saveAudio(sensor, Float.valueOf(distance));
+                if(!distance.contains("DISCONNECTD") || !distance.contains("ISCONNECTED")) saveAudio(sensor, Float.valueOf(distance));
             /*if (sensor == 'c') {
             valor_f.setText("" + distance);
             volume_f.setText(String.format("%.02f", fv));
@@ -302,14 +364,15 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
             if (received.equals("DISCONNECT")) {
                 Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
                 ConnectBluetooth.btt.write("DISCONNECTED");
+            } else {
+                received += DELIMITER;
+                handleMsg(received);
             }
-            received += DELIMITER;
-            handleMsg(received);
         }
 
     };
 
-    public void disconnect(View view) {
+    public void disconnect() {
         ConnectBluetooth.btt.write("DISCONNECTED");
         if(ConnectBluetooth.btt != null) {
             ConnectBluetooth.btt.interrupt();
@@ -334,13 +397,38 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    private Boolean isPaused = false;
 
     @Override
     public void OnResult(ArrayList<String> commands) {
 
+        Log.d("Reconhecimento", "Comando Recebido");
+
         for(String command:commands) {
 
             makeToast(command);
+            String text = command.toLowerCase();
+
+            if(text.contains("iniciar")) {
+                if(!init) {
+                    turnOnTimer();
+                    timer = new Timer();
+                    timer.schedule(task, 0, time);
+                    init = true;
+                    Log.d("Reconhecimento", "iniciado");
+                }
+                return;
+            } else if(text.contains("desconectar")) {
+                disconnect();
+                Log.d("Reconhecimento", "desconectado");
+                return;
+            } else if(text.contains("parar") || text.contains("pausar")) {
+                stopTimer();
+                isPaused = true;
+                init = false;
+                Log.d("Reconhecimento", "Pausado/Parado");
+                return;
+            }
 
         }
     }

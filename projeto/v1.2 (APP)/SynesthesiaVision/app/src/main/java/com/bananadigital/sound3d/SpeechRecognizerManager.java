@@ -53,7 +53,7 @@ public class SpeechRecognizerManager {
     /* Named searches allow to quickly reconfigure the decoder */
     private static final String KWS_SEARCH = "wakeup";
     /* Keyword we are looking for to activate menu */
-    private static String KEYPHRASE; //= "ok google";
+    private static String KEYPHRASE ;
     private edu.cmu.pocketsphinx.SpeechRecognizer mPocketSphinxRecognizer;
     private static final String TAG = SpeechRecognizerManager.class.getSimpleName();
     protected Intent mSpeechRecognizerIntent;
@@ -62,10 +62,9 @@ public class SpeechRecognizerManager {
     private OnResultListener mOnResultListener;
 
 
-    public SpeechRecognizerManager(Context context, String KEY) {
-
-        this.mContext = context;
+    public SpeechRecognizerManager(Context context, final String KEY) {
         KEYPHRASE = KEY;
+        this.mContext = context;
         initPockerSphinx();
         initGoogleSpeechRecognizer();
 
@@ -128,7 +127,7 @@ public class SpeechRecognizerManager {
         mSpeechRecognizerIntent = new Intent( RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
 
         mSpeechRecognizerIntent.putExtra( RecognizerIntent.EXTRA_CONFIDENCE_SCORES, true);
     }

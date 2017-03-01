@@ -86,6 +86,12 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //mSpeechRecognizerManager.destroy();
+    }
+
     /**
      * Conecta automaticamente se houver um endereço de dispositivo já salvo anteriormente
      */
@@ -155,6 +161,9 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     }
 
     private void close() {
+
+        mSpeechRecognizerManager.destroy();
+        mSpeechRecognizerManager = null;
         this.finish();
     }
 
