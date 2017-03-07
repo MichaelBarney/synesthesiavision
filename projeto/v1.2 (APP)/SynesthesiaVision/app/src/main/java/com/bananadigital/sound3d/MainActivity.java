@@ -1,7 +1,6 @@
 package com.bananadigital.sound3d;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
@@ -9,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -18,9 +16,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -32,16 +32,7 @@ import static android.media.AudioManager.STREAM_MUSIC;
 
 public class MainActivity extends AppCompatActivity implements SpeechRecognizerManager.OnResultListener {
     private static final String TAG = "MainActivity" ;
-    private static final String TAG1 = "Teste1";
-    private static final String TAG2 = "Teste2";
     private static final char DELIMITER = '\n';
-    private static final int TIME_MAX = 500;
-    private static final int MIN = 50 ;
-
-
-
-    //Necessary for voice recognition
-    private SpeechRecognizerManager mSpeechRecognizerManager;
 
     //Keyphrase to activate voice recognition
     private String KEYPHRASE = "ok google";
@@ -59,16 +50,18 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
 
     private TextView tempo_total;
     private TextView tempo_sensor;
-    private Button button_start;
-    private Button button_disconnect;
-    private Button btnAplicar;
 
     private EditText edtTempo;
 
-    private int n_s = 3; //number of sensors
+    private int n_s = 5; //number of sensors
     private int c_s = 0; //current sensor
 
     float[] ds = new float[n_s];
+    float frente;
+    float esquerda;
+    float direita;
+    float frenteEsquerda;
+    float frenteDireita;
 
     private CheckBox chkFrente;
     private CheckBox chkEsquerda;
@@ -76,11 +69,15 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
     private CheckBox chkFrenteDireita;
     private CheckBox chkFrenteEsquerda;
 
+
+    private boolean logarithm;
+
+    /*
     private Vibrator vibrator;
     long [] vibratorFrente = {0, 100, 50};
     long [] vibratorEsquerda = {0, 150, 50};
     long [] vibratorDireita = {0, 200, 50};
-
+    */
 
     /*TextView ps;
     TextView valor_f;
@@ -105,17 +102,19 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         setContentView(R.layout.activity_main);
 
         //Voice Recognition
-        mSpeechRecognizerManager = new SpeechRecognizerManager(this, KEYPHRASE);
+        SpeechRecognizerManager mSpeechRecognizerManager = new SpeechRecognizerManager(this, KEYPHRASE);
         mSpeechRecognizerManager.setOnResultListner(this);
 
         //sound
         createSoundPool();
 
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        //vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         chkDireita = (CheckBox) findViewById(R.id.chkDireita);
         chkEsquerda = (CheckBox) findViewById(R.id.chkEsquerda);
         chkFrente = (CheckBox) findViewById(R.id.chkFrente);
+        chkFrenteEsquerda = (CheckBox) findViewById(R.id.chkFrenteEsquerda);
+        chkFrenteDireita = (CheckBox) findViewById(R.id.chkFrenteDireita);
 
         edtTempo = (EditText) findViewById(R.id.edtTempo);
 
@@ -130,9 +129,12 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         volume_d = (TextView) findViewById(R.id.volume_d);
         */
         //Button
-        button_start = (Button) findViewById(R.id.button_start);
-        button_disconnect = (Button) findViewById(R.id.btn_disconnect);
-        btnAplicar = (Button) findViewById(R.id.btnOk);
+        Button button_start = (Button) findViewById(R.id.button_start);
+        Button button_disconnect = (Button) findViewById(R.id.btn_disconnect);
+        Button btnAplicar = (Button) findViewById(R.id.btnOk);
+        Button btnfreqUnic = (Button) findViewById(R.id.freq_unic);
+        Button btnfreqVar = (Button) findViewById(R.id.freq_var);
+        ToggleButton toggleModo = (ToggleButton) findViewById(R.id.toggleModo);
 
         button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
@@ -160,6 +162,36 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
                     time = Integer.parseInt(edtTempo.getText().toString());
                 }
                 Log.d("TEMPO", "Tempo ajustado para: " + time);
+            }
+        });
+
+        //Seta a frequenciapara
+        btnfreqUnic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                frequenciaDireita = 1.0f;
+                frenteEsquerda = 1.0f;
+                frequenciaFrente = 1.0f;
+                frequenciaFrenteDireita = 1.0f;
+                frequenciaFrenteEsquerda = 1.0f;
+            }
+        });
+
+        btnfreqVar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                frequenciaFrente = 2.0f;
+                frequenciaDireita = 1.4f;
+                frequenciaEsquerda = 1.4f;
+                frequenciaFrenteDireita = 1.2f;
+                frequenciaFrenteEsquerda = 1.2f;
+            }
+        });
+
+        toggleModo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                logarithm = isChecked;
             }
         });
 
@@ -237,32 +269,61 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
                     c_s = 0;
                 }
                 playAudio(c_s);
+                //playAudioV2();
                 Log.d("TEMPO", "tempo: " + time);
             }
         };
         Log.d(TAG, "Iniciado");
     }
-
-    int dmax = 300;
-    float frequenciaEsquerda = 1.2f;
-    float frequenciaDireita = 1.2f;
-    float frequenciaFrente = 1.2f;
+    float dmax = 400;
+    float frequenciaFrente = 1.0f;
+    float frequenciaDireita = 1.0f;
+    float frequenciaEsquerda = 1.0f;
+    float frequenciaFrenteDireita = 1.2f;
+    float frequenciaFrenteEsquerda = 1.2f;
 
     private void playAudio(int s) {
         //calcula a itensidade proporcional de p para a distancia
-        float v;
+        float v = 0;
         float d = ds[s];
-
+        //float d = (float) Math.log(ds[s])/Math.log();
         //Log.d(TAG, "" + String.valueOf(d));
+        float base = 0.1f;
 
-        if(d <= dmax) v =  1 - (d/dmax);
-        else{v = 0.01f;}
+        if(logarithm) {
+            if (ds[s] < dmax)
+                v = (float) ((float) 1 - (2 * (Math.log(d) / Math.log(base)) + 0.5));
+            else v = 0.01f;
+            //Toast.makeText(this, "logaritmo", Toast.LENGTH_SHORT).show();
+        } else {
+            if (d < dmax) v = 1 - (d / dmax);
 
+            if(d < 50) {
+                frequenciaDireita = 2.0f;
+                frequenciaEsquerda = 2.0f;
+                frequenciaFrente = 2.0f;
+            } else if(d < 100 && d >= 50) {
+                frequenciaDireita = 1.6f;
+                frequenciaEsquerda = 1.6f;
+                frequenciaFrente = 1.6f;
+            } else if(d >= 100) {
+                frequenciaDireita = 1.2f;
+                frequenciaEsquerda = 1.2f;
+                frequenciaFrente = 1.2f;
+            }
+
+
+            else {
+                v = 0.01f;
+            }
+            //Toast.makeText(this, "linear", Toast.LENGTH_SHORT).show();
+        }
         // 0 == LEFT
         // 1 == FRONT
         // 2 == RIGHT
 
         //LEFT
+        /*
         if(s == 2  && chkEsquerda.isChecked()){
 
             soundPool.setVolume(soundID, v, 0);
@@ -285,34 +346,71 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
             soundPool.setRate(soundID, frequenciaDireita);
             dv = v;
             Log.d("RIGHT", "RIGHT " + d + " " + v);
+        }*/
+
+        //Left
+        if(s == 0 && chkEsquerda.isChecked()){
+            soundPool.setVolume(soundID, v, 0);
+            soundPool.setRate(soundID, frequenciaEsquerda);
+            Log.d(TAG, "LEFT: D = " + d + " V = " + v);
         }
+        //Top Left
+        else if(s == 1 && chkFrenteEsquerda.isChecked()){
+            soundPool.setVolume(soundID, (v * 3) / 4, v / 4);
+            soundPool.setRate(soundID, frequenciaFrenteEsquerda);
+        }
+        //Front
+        else if(s == 2 && chkFrente.isChecked()){
+            soundPool.setVolume(soundID, v/2, v/2);
+            soundPool.setRate(soundID, frequenciaFrente);
+            Log.d(TAG, "FRONT: D = " + d + " V = " + v);
+        }
+        //Top Right
+        else if(s == 3 && chkFrenteDireita.isChecked()){
+            soundPool.setVolume(soundID, v / 4, (v * 3) / 4);
+            soundPool.setRate(soundID, frequenciaFrenteDireita);
+        }
+        //RIGHT
+        else if(s == 4 && chkDireita.isChecked()){
+            soundPool.setVolume(soundID, 0, v);
+            soundPool.setRate(soundID, frequenciaDireita);
+            Log.d(TAG, "RIGHT: D = " + d + " V = " + v);
+        }
+
     }
 
 
     private void saveAudio(char s, float d) {
 
-        //Log.d(TAG, "Audio Saved");
         //LEFT
-
-
-        //LEFT
-        if(s == 'a'){
-          //for(int i = 0; i < 4; i++)  ds[i] = d;
-
+        /*if(s == 'a'){
             ds[0] = d;
-
-
         }
         //FRONT
         else if(s == 'c'){
             ds[1] = d;
-            //for(int i = 4; i < 8; i++)  ds[i] = d;
         }
         //RIGHT
         else if(s == 'e'){
             ds[2] = d;
-            //for(int i = 8; i < 12; i++)  ds[i] = d;
+        } */
+
+        if(s == 'a'){
+            ds[4] = d;
         }
+        else if(s == 'b'){
+            ds[3] = d;
+        }
+        else if(s == 'c'){
+            ds[2] = d;
+        }
+        else if(s == 'd'){
+            ds[1] = d;
+        }
+        else if(s == 'e'){
+            ds[0] = d;
+        }
+
 
 
     }
@@ -337,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         //Log.d(TAG,"[SENSOR]: " + sensor + " [DISTANCE]: "+ distance);
 
         if (!distance.isEmpty()) {
-                if(!distance.contains("DISCONNECTD") || !distance.contains("ISCONNECTED")) saveAudio(sensor, Float.valueOf(distance));
+            saveAudio(sensor, Float.valueOf(distance));
             /*if (sensor == 'c') {
             valor_f.setText("" + distance);
             volume_f.setText(String.format("%.02f", fv));

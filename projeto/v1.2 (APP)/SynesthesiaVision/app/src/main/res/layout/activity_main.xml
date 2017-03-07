@@ -70,15 +70,6 @@
         android:layout_alignStart="@+id/textView2" />
 
     <CheckBox
-        android:text="Direita"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/chkDireita"
-        android:layout_centerVertical="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <CheckBox
         android:text="Esquerda"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -96,6 +87,65 @@
         android:layout_below="@+id/btnOk"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="19dp" />
+
+    <CheckBox
+        android:text="Frente Esquerda"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/chkFrente"
+        android:layout_alignLeft="@+id/button_start"
+        android:layout_alignStart="@+id/button_start"
+        android:layout_marginLeft="13dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="13dp"
+        android:id="@+id/chkFrenteEsquerda" />
+
+    <CheckBox
+        android:text="Frente Direita"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/chkFrenteEsquerda"
+        android:layout_alignLeft="@+id/btn_disconnect"
+        android:layout_alignStart="@+id/btn_disconnect"
+        android:id="@+id/chkFrenteDireita" />
+
+    <CheckBox
+        android:text="Direita"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/chkDireita"
+        android:layout_centerVertical="true"
+        android:layout_alignRight="@+id/chkFrenteDireita"
+        android:layout_alignEnd="@+id/chkFrenteDireita" />
+
+    <Button
+        android:text="Frequencia Variada"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/freq_var"
+        android:layout_alignTop="@+id/freq_unic"
+        android:layout_alignRight="@+id/chkDireita"
+        android:layout_alignEnd="@+id/chkDireita" />
+
+    <Button
+        android:text="Frequencia Unica"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/freq_unic"
+        android:layout_below="@+id/chkEsquerda"
+        android:layout_alignLeft="@+id/button_start"
+        android:layout_alignStart="@+id/button_start" />
+
+    <ToggleButton
+        android:text="ToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btn_disconnect"
+        android:layout_toLeftOf="@+id/btn_disconnect"
+        android:layout_toStartOf="@+id/btn_disconnect"
+        android:id="@+id/toggleModo"
+        android:textOff="Linear"
+        android:textOn="Logaritmo" />
 
 
 </RelativeLayout>

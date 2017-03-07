@@ -17,12 +17,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Set;
 
 
-public class ConnectBluetooth extends AppCompatActivity implements ListView.OnItemClickListener,
-        SpeechRecognizerManager.OnResultListener{
+public class ConnectBluetooth extends AppCompatActivity implements ListView.OnItemClickListener{
 
 
     private static final String TAG = "ConnectBluetooth";
@@ -45,9 +43,6 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
-
-        mSpeechRecognizerManager =new SpeechRecognizerManager(this, KEYPHRASE);
-        mSpeechRecognizerManager.setOnResultListner(this);
 
         if(btt != null) {
             btt.interrupt();
@@ -101,7 +96,6 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         String address = bt_name.getString("bt_address", "*");
         Log.d(TAG, address);
         Toast.makeText(this, "Conectando ao dispositivo", Toast.LENGTH_SHORT).show();
-        Toast.makeText(this,"Conectando", Toast.LENGTH_SHORT).show();
         if(address != "*"){
             list_bt.setEnabled(false);
             BluetoothDevice bt = btAdapter.getRemoteDevice(address);
@@ -162,8 +156,6 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
     private void close() {
 
-        mSpeechRecognizerManager.destroy();
-        mSpeechRecognizerManager = null;
         this.finish();
     }
 
@@ -235,19 +227,11 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     img.setImageDrawable(getResources().getDrawable(R.drawable.cross));
                     img.setContentDescription(getString(R.string.f_conexao));
                     statusConnection.setText(R.string.f_conexao);
+                    Toast.makeText(ConnectBluetooth.this, "Falha na Conexão", Toast.LENGTH_SHORT).show();
                     btt = null;
                     break;
                 }
             }
         }
     };
-
-    @Override
-    public void OnResult(ArrayList<String> commands) {
-
-        for(String command : commands) {
-
-            if(command.equals(""));
-        }
-    }
 }
