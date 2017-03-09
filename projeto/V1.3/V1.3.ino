@@ -80,7 +80,7 @@ void parseReadBuffer() {
   received = received.substring(inx + 1);
   
   // Process the message
-  gotMessage(s);
+  //gotMessage(s);
   
   // Look for more complete messages
   parseReadBuffer();
@@ -90,12 +90,6 @@ void parseReadBuffer() {
 void gotMessage(String message) {
   
   //Serial.println("[RECV]: " + message);
-  
-  if(message == "CONNECTED") {
-    startCycle = true;
-  } else if (message == "DISCONNECTED") {
-    startCycle = false;
-  }
 }
 
 

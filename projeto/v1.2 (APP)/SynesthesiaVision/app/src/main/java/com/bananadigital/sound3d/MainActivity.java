@@ -291,8 +291,10 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         float base = 0.1f;
 
         if(logarithm) {
-            if (ds[s] < dmax)
-                v = (float) ((float) 1 - (2 * (Math.log(d) / Math.log(base)) + 0.5));
+            if (ds[s] < dmax) {
+                double d1 = d / 100;
+                v = (float) ((float) 1 - (2 * (Math.log(d1) / Math.log(base)) + 0.5));
+            }
             else v = 0.01f;
             //Toast.makeText(this, "logaritmo", Toast.LENGTH_SHORT).show();
         } else {
@@ -303,13 +305,13 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
                 frequenciaEsquerda = 2.0f;
                 frequenciaFrente = 2.0f;
             } else if(d < 100 && d >= 50) {
+                frequenciaDireita = 1.8f;
+                frequenciaEsquerda = 1.8f;
+                frequenciaFrente = 1.8f;
+            } else if(d >= 100) {
                 frequenciaDireita = 1.6f;
                 frequenciaEsquerda = 1.6f;
                 frequenciaFrente = 1.6f;
-            } else if(d >= 100) {
-                frequenciaDireita = 1.2f;
-                frequenciaEsquerda = 1.2f;
-                frequenciaFrente = 1.2f;
             }
 
 
@@ -318,35 +320,6 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
             }
             //Toast.makeText(this, "linear", Toast.LENGTH_SHORT).show();
         }
-        // 0 == LEFT
-        // 1 == FRONT
-        // 2 == RIGHT
-
-        //LEFT
-        /*
-        if(s == 2  && chkEsquerda.isChecked()){
-
-            soundPool.setVolume(soundID, v, 0);
-            soundPool.setRate(soundID, frequenciaEsquerda);
-            ev = v;
-            Log.d("LEFT", "LEFT " + d + " " + v);
-        }
-        //FRONT
-        else if(s == 1 && chkFrente.isChecked()){
-
-            soundPool.setVolume(soundID, v/2, v/2);
-            soundPool.setRate(soundID, frequenciaFrente);
-            fv = v/2;
-            Log.d("FRONT", "FRONT " + d + " " + v);
-        }
-        //RIGHT
-        else if(s == 0 && chkDireita.isChecked()){
-
-            soundPool.setVolume(soundID, 0, v);
-            soundPool.setRate(soundID, frequenciaDireita);
-            dv = v;
-            Log.d("RIGHT", "RIGHT " + d + " " + v);
-        }*/
 
         //Left
         if(s == 0 && chkEsquerda.isChecked()){
