@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -32,10 +34,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private ImageView img;
     private TextView statusConnection;
 
-    //Used for voice recognition
-    private SpeechRecognizerManager mSpeechRecognizerManager;
-    //Keyphrase to activate voice recognition
-    private static final String KEYPHRASE = "ok google";
+    private MediaPlayer mPlayer;
 
     public static final String Storage = "storage";
 
@@ -43,6 +42,14 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
+
+        mPlayer = new MediaPlayer();
+        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                mPlayer.start();
+            }
+        });
 
         if(btt != null) {
             btt.interrupt();
@@ -82,9 +89,26 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        try {
+            AssetFileDescriptor afd = null;
+            afd = getResources().openRawResourceFd(R.raw.synesthesia_sound);
+
+            if(afd != null){
+                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                mPlayer.prepareAsync();
+            }
+
+        } catch (Exception e) {
+            Log.e("Som", "Erro na execução do som");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
-        //mSpeechRecognizerManager.destroy();
     }
 
     /**

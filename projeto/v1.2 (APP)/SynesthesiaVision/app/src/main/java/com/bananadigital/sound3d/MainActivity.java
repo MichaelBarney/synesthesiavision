@@ -30,12 +30,9 @@ import static android.media.AudioManager.STREAM_MUSIC;
 
 //Modificado para 3 Sensores
 
-public class MainActivity extends AppCompatActivity implements SpeechRecognizerManager.OnResultListener {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity" ;
     private static final char DELIMITER = '\n';
-
-    //Keyphrase to activate voice recognition
-    private String KEYPHRASE = "ok google";
 
     //Variables
     private SoundPool soundPool;
@@ -69,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
     private CheckBox chkFrenteDireita;
     private CheckBox chkFrenteEsquerda;
 
+    private TextToSpeechManager mTTS;
+    private SoundManager soundManager;
 
     private boolean logarithm;
 
@@ -101,14 +100,12 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
 
-        //Voice Recognition
-        SpeechRecognizerManager mSpeechRecognizerManager = new SpeechRecognizerManager(this, KEYPHRASE);
-        mSpeechRecognizerManager.setOnResultListner(this);
-
         //sound
-        createSoundPool();
+        soundManager = new SoundManager(MainActivity.this);
+        soundManager.createSoundPool();
+        //createSoundPool();
 
-        //vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        mTTS = new TextToSpeechManager(MainActivity.this);
 
         chkDireita = (CheckBox) findViewById(R.id.chkDireita);
         chkEsquerda = (CheckBox) findViewById(R.id.chkEsquerda);
@@ -139,7 +136,9 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
         button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
+
                 if(!init) {
+                    mTTS.speak("Iniciando sonorização");
                     turnOnTimer();
                     timer = new Timer();
                     timer.schedule(task, 0, time);
@@ -206,9 +205,10 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
-        soundPool.release();
+        //soundPool.release();
+        if(soundManager != null) soundPool.release();
     }
-
+    /*
     protected void createSoundPool() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             createNewSoundPool();
@@ -246,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
             }
         });
         soundID = soundPool.load(this, R.raw.bu, 2);
-    }
+    }*/
 
     private void stopTimer() {
         if(timer != null && task != null) {
@@ -318,35 +318,44 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
             else {
                 v = 0.01f;
             }
-            //Toast.makeText(this, "linear", Toast.LENGTH_SHORT).show();
         }
 
         //Left
         if(s == 0 && chkEsquerda.isChecked()){
-            soundPool.setVolume(soundID, v, 0);
-            soundPool.setRate(soundID, frequenciaEsquerda);
+            soundManager.setVolume(v, 0);
+            soundManager.setRate(frequenciaEsquerda);
+            //soundPool.setVolume(soundID, v, 0);
+            //soundPool.setRate(soundID, frequenciaEsquerda);
             Log.d(TAG, "LEFT: D = " + d + " V = " + v);
         }
         //Top Left
         else if(s == 1 && chkFrenteEsquerda.isChecked()){
-            soundPool.setVolume(soundID, (v * 3) / 4, v / 4);
-            soundPool.setRate(soundID, frequenciaFrenteEsquerda);
+            soundManager.setVolume((v * 3) / 4, v / 4);
+            soundManager.setRate(frequenciaFrenteEsquerda);
+            //soundPool.setVolume(soundID, (v * 3) / 4, v / 4);
+            //soundPool.setRate(soundID, frequenciaFrenteEsquerda);
         }
         //Front
         else if(s == 2 && chkFrente.isChecked()){
-            soundPool.setVolume(soundID, v/2, v/2);
-            soundPool.setRate(soundID, frequenciaFrente);
+            soundManager.setVolume(v/2, v/2);
+            soundManager.setRate(frequenciaFrente);
+            //soundPool.setVolume(soundID, v/2, v/2);
+            //soundPool.setRate(soundID, frequenciaFrente);
             Log.d(TAG, "FRONT: D = " + d + " V = " + v);
         }
         //Top Right
         else if(s == 3 && chkFrenteDireita.isChecked()){
-            soundPool.setVolume(soundID, v / 4, (v * 3) / 4);
-            soundPool.setRate(soundID, frequenciaFrenteDireita);
+            soundManager.setVolume(v / 4, (v * 3) / 4);
+            soundManager.setRate(frequenciaFrenteDireita);
+            //soundPool.setVolume(soundID, v / 4, (v * 3) / 4);
+            //soundPool.setRate(soundID, frequenciaFrenteDireita);
         }
         //RIGHT
         else if(s == 4 && chkDireita.isChecked()){
-            soundPool.setVolume(soundID, 0, v);
-            soundPool.setRate(soundID, frequenciaDireita);
+            soundManager.setVolume(0, v);
+            soundManager.setRate(frequenciaDireita);
+            //soundPool.setVolume(soundID, 0, v);
+            //soundPool.setRate(soundID, frequenciaDireita);
             Log.d(TAG, "RIGHT: D = " + d + " V = " + v);
         }
 
@@ -355,31 +364,21 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
 
     private void saveAudio(char s, float d) {
 
-        //LEFT
-        /*if(s == 'a'){
-            ds[0] = d;
-        }
-        //FRONT
-        else if(s == 'c'){
-            ds[1] = d;
-        }
-        //RIGHT
-        else if(s == 'e'){
-            ds[2] = d;
-        } */
-
+        //Right
         if(s == 'a'){
             ds[4] = d;
         }
         else if(s == 'b'){
             ds[3] = d;
         }
+        //Front
         else if(s == 'c'){
             ds[2] = d;
         }
         else if(s == 'd'){
             ds[1] = d;
         }
+        //Left
         else if(s == 'e'){
             ds[0] = d;
         }
@@ -409,17 +408,6 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
 
         if (!distance.isEmpty()) {
             saveAudio(sensor, Float.valueOf(distance));
-            /*if (sensor == 'c') {
-            valor_f.setText("" + distance);
-            volume_f.setText(String.format("%.02f", fv));
-            } else if (sensor == 'a') {
-                valor_d.setText("" + distance);
-                volume_d.setText(String.format("%.02f", dv));
-            } else if (sensor == 'e') {
-                valor_e.setText("" + distance);
-                volume_e.setText(String.format("%.02f", ev));
-            }*/
-            distance = "";
         }
 
 
@@ -467,46 +455,6 @@ public class MainActivity extends AppCompatActivity implements SpeechRecognizerM
 
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-
-    private Boolean isPaused = false;
-
-    @Override
-    public void OnResult(ArrayList<String> commands) {
-
-        Log.d("Reconhecimento", "Comando Recebido");
-
-        for(String command:commands) {
-
-            makeToast(command);
-            String text = command.toLowerCase();
-
-            if(text.contains("iniciar")) {
-                if(!init) {
-                    turnOnTimer();
-                    timer = new Timer();
-                    timer.schedule(task, 0, time);
-                    init = true;
-                    Log.d("Reconhecimento", "iniciado");
-                }
-                return;
-            } else if(text.contains("desconectar")) {
-                disconnect();
-                Log.d("Reconhecimento", "desconectado");
-                return;
-            } else if(text.contains("parar") || text.contains("pausar")) {
-                stopTimer();
-                isPaused = true;
-                init = false;
-                Log.d("Reconhecimento", "Pausado/Parado");
-                return;
-            }
-
-        }
-    }
-
-
-
-
 
     ///// ---------EXTRAS----------------
     @Override
