@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
 
+
         //sound
         soundManager = new SoundManager(MainActivity.this);
         soundManager.createSoundPool();

@@ -1,14 +1,21 @@
 package com.bananadigital.sound3d;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +33,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
 
     private static final String TAG = "ConnectBluetooth";
+    private static final int PERMISSION_CODE = 2;
     public static BluetoothThread btt;
     private BluetoothAdapter btAdapter;
     private Set<BluetoothDevice> pairedDevices;
@@ -33,6 +41,11 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     public static int ENABLE_BLUETOOTH = 1;
     private ImageView img;
     private TextView statusConnection;
+
+    private String[] permissions = new String[] {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     private MediaPlayer mPlayer;
 
@@ -50,6 +63,8 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                 mPlayer.start();
             }
         });
+
+        PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
 
         if(btt != null) {
             btt.interrupt();
@@ -258,4 +273,35 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
             }
         }
     };
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        //Checking the request code of our request
+        if(requestCode == PERMISSION_CODE){
+
+            //If permission is granted
+            if(grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
+                //Displaying a toast
+                Log.d("Permissoes", "Permissões garantidas!");
+            }else{
+                //Displaying another toast if permission is not granted
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Permissões negadas");
+                builder.setPositiveButton("Confirmar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        close();
+                    }
+                });
+
+                AlertDialog dlg = builder.create();
+                dlg.show();
+            }
+        }
+    }
+
+
 }
