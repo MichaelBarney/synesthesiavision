@@ -13,20 +13,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 
 public class ConnectBluetooth extends AppCompatActivity implements ListView.OnItemClickListener{
@@ -42,6 +42,9 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private ImageView img;
     private TextView statusConnection;
 
+    private GPSTracker mGPS;
+    TextToSpeechManager mTTS;
+
     private String[] permissions = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -55,14 +58,30 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
-
-        mPlayer = new MediaPlayer();
-        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        mTTS = new TextToSpeechManager(this);
+        mGPS = new GPSTracker(this);
+        mGPS.getLocation();
+        //mPlayer = new MediaPlayer();
+        /*mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 mPlayer.start();
             }
+        });*/
+        mTTS.createTTS();
+        Button btnSpeak = (Button) findViewById(R.id.btnSpeak);
+        btnSpeak.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String latitude = String.valueOf(mGPS.getLatitude());
+                String longitude = String.valueOf(mGPS.getLongitude());
+                String received;
+                received = performPostCall("http://sweetglass.azurewebsites.net/weather", "-8.058945", "-34.950434");
+                Log.d("Connect - Recebido: ", received);
+                mTTS.speak(received);
+            }
         });
+
 
         PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
 
@@ -103,6 +122,18 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         }
     }
 
+    private String performPostCall(String requestURL1, String lat, String lon) {
+        String received = "";
+
+        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
+        try {
+            received = sendPostReqAsyncTask.execute(lat, lon,requestURL1).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return received;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -111,8 +142,8 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
             afd = getResources().openRawResourceFd(R.raw.synesthesia_sound);
 
             if(afd != null){
-                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                mPlayer.prepareAsync();
+                //mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                //mPlayer.prepareAsync();
             }
 
         } catch (Exception e) {
