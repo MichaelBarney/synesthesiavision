@@ -56,11 +56,11 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
 
-        mTTS = new TextToSpeechManager(this);
-        mTTS.createTTS();
+        //mTTS = new TextToSpeechManager(this);
+        //mTTS.createTTS();
 
-        mGPS = new GPSTracker(this);
-        mGPS.getLocation();
+        //mGPS = new GPSTracker(this);
+        //mGPS.getLocation();
 
         PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
 
@@ -99,6 +99,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                 }
             }
         }
+        playSound(R.raw.synesthesia_sound);
     }
 
 
@@ -106,25 +107,21 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     @Override
     protected void onResume() {
         super.onResume();
-        playSound(R.raw.synesthesia_sound);
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         playSound(R.raw.finalizar);
-        if(mPlayer.isPlaying()){
-            mPlayer.stop();
+        if(mPlayer != null){
+            if(mPlayer.isPlaying()) mPlayer.stop();
             mPlayer.release();
         }
     }
 
     private void playSound(int file) {
         try {
-            if(mPlayer.isPlaying()) {
-                mPlayer.stop();
-                mPlayer.release();
-            }
             if(mPlayer != null) mPlayer = null;
             mPlayer = MediaPlayer.create(this, file);
             mPlayer.start();
@@ -205,6 +202,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private void close() {
 
         this.finish();
+        mPlayer.release();
     }
 
 
@@ -254,7 +252,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     //saveAddress(adress);
                     img.setImageDrawable(getResources().getDrawable(R.drawable.check));
                     statusConnection.setText(R.string.a_conexao);
-                    btt.write("CONNECTED");
+                    //btt.write("CONNECTED");
                     playSound(R.raw.bluetooth_confirma);
                     Toast.makeText(getApplicationContext(),"Conectado", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);

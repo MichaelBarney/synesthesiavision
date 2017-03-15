@@ -22,7 +22,7 @@ public class TextToSpeechManager {
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
 
-                    int result = mTTS.setLanguage(new Locale("pt", "POR"));
+                    int result = mTTS.setLanguage(new Locale("pt", "br"));
 
                     if (result == TextToSpeech.LANG_MISSING_DATA
                             || result == TextToSpeech.LANG_NOT_SUPPORTED) {

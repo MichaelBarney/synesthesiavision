@@ -147,5 +147,14 @@
         android:textOff="Linear"
         android:textOn="Logaritmo" />
 
+    <Button
+        android:id="@+id/btnTempo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/btn_disconnect"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:text="tempo" />
+
 
 </RelativeLayout>

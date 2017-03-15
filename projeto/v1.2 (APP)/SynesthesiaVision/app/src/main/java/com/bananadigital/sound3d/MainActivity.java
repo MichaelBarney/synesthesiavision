@@ -101,8 +101,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        //writeHandler = ConnectBluetooth.btt.getWriteHandler();
-        //ConnectBluetooth.btt.setReadHandler(readHandler);
+        writeHandler = ConnectBluetooth.btt.getWriteHandler();
+        ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
 
         chkDireita = (CheckBox) findViewById(R.id.chkDireita);
@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         mTTS = new TextToSpeechManager(this);
 
         mGPS = new GPSTracker(this);
-
+        playSound(R.raw.bluetooth_confirma);
 
         edtTempo = (EditText) findViewById(R.id.edtTempo);
 
@@ -134,9 +134,17 @@ public class MainActivity extends AppCompatActivity {
         Button btnAplicar = (Button) findViewById(R.id.btnOk);
         Button btnfreqUnic = (Button) findViewById(R.id.freq_unic);
         Button btnfreqVar = (Button) findViewById(R.id.freq_var);
+        Button btnTempo = (Button) findViewById(R.id.btnTempo);
         ToggleButton toggleModo = (ToggleButton) findViewById(R.id.toggleModo);
 
-        getWheaterPrevision();
+        //getWeatherPrevision();
+
+        btnTempo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getWeatherPrevision();
+            }
+        });
 
         button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
@@ -202,14 +210,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void playWheaterPrevision(final String wheaterPrevision) {
+    private void playWeatherPrevision(final String wheaterPrevision) {
 
         if(taskPrevisao != null) taskPrevisao = null;
         taskPrevisao = new TimerTask() {
             @Override
             public void run() {
                 if(mTTS != null) {
-                    mTTS.speak(wheaterPrevision);
+                    //mTTS.speak(wheaterPrevision);
                 }
                 Log.d("wheater", "wheater: Tocado: " + wheaterPrevision);
             }
@@ -226,24 +234,15 @@ public class MainActivity extends AppCompatActivity {
         soundManager = new SoundManager(this);
         soundManager.createSoundPool();
         mTTS.createTTS();
-        playWheaterPrevision(wheaterPrevision);
-
-        sendPostReqThread = new SendPostReqThread(wheaterHandler);
-
-        if(mGPS.canGetLocation()){
-            double lat = mGPS.getLatitude();
-            double lon = mGPS.getLongitude();
-            String latitude = String.valueOf(lat);
-            String longitude = String.valueOf(lon);
-            sendPostReqThread.setCoordinates(latitude, longitude);
-            sendPostReqThread.start();
-        }
+        //playWeatherPrevision(wheaterPrevision);
+        playSound(R.raw.bluetooth_confirma);
+        sendPostReqThread = new SendPostReqThread(weatherHandler);
+        getWeatherPrevision();
     }
 
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
-        //soundPool.release();
         playSound(R.raw.finalizar);
         if(soundManager != null) {
             soundManager.destroySoundPool();
@@ -308,9 +307,17 @@ public class MainActivity extends AppCompatActivity {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    private void getWheaterPrevision() {
-        if(isOnline()){
+    public void getWeatherPrevision() {
+        /*if(isOnline()){
             performPostCall("http://sweetglass.azurewebsites.net/weather", "-8.058945", "-34.950434");
+        }*/
+        if(mGPS.canGetLocation() && isOnline()){
+            double lat = mGPS.getLatitude();
+            double lon = mGPS.getLongitude();
+            String latitude = String.valueOf(lat);
+            String longitude = String.valueOf(lon);
+            sendPostReqThread.setCoordinates(latitude, longitude);
+            sendPostReqThread.start();
         }
     }
 
@@ -496,8 +503,12 @@ public class MainActivity extends AppCompatActivity {
 
         //Log.d(TAG,"[SENSOR]: " + sensor + " [DISTANCE]: "+ distance);
 
-        if (!distance.isEmpty()) {
-            saveAudio(sensor, Float.valueOf(distance));
+        if (!distance.isEmpty() && distance != "") {
+            try {
+                saveAudio(sensor, Float.valueOf(distance));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
 
@@ -514,29 +525,32 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
                 ConnectBluetooth.btt.write("DISCONNECTED");
             } else {
-                received += DELIMITER;
-                handleMsg(received);
+                if (received != "0") {
+                    received += DELIMITER;
+                    handleMsg(received);
+                }
             }
         }
 
     };
 
-    Handler wheaterHandler = new Handler(){
+    Handler weatherHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
             String received = msg.obj.toString();
-            Log.d(TAG, "wheater" + received);
+            mTTS.speak(received);
+            Log.d("Recebido", "weather + Thread principal: " + received);
         }
     };
 
     public void disconnect() {
         ConnectBluetooth.btt.write("DISCONNECTED");
         if(ConnectBluetooth.btt != null) {
-            //ConnectBluetooth.btt.interrupt();
-            //ConnectBluetooth.btt = null;
-            //startConnectBluetooth();
+            ConnectBluetooth.btt.interrupt();
+            ConnectBluetooth.btt = null;
+            startConnectBluetooth();
         }
     }
 
@@ -578,6 +592,5 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
 
 }

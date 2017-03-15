@@ -25,10 +25,11 @@ public class SendPostReqThread extends Thread {
     private String longitude;
     private Handler readHandler;
     private URL url;
-    private String response;
+    private String response = "";
 
     public SendPostReqThread(Handler handler) {
         this.readHandler = handler;
+        Log.d("Post Request", "Post request created");
     }
 
     public void setCoordinates(String latitude, String longitude){
@@ -51,8 +52,7 @@ public class SendPostReqThread extends Thread {
 
 
             OutputStream os = conn.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(
-                    new OutputStreamWriter(os, "UTF-8"));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
             //writer.write(getPostDataString(postDataParams));
             writer.write("lat="+latitude+"&lon="+longitude+"");
 
@@ -63,17 +63,16 @@ public class SendPostReqThread extends Thread {
 
             if (responseCode == HttpsURLConnection.HTTP_OK) {
                 String line;
-                BufferedReader br=new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 while ((line=br.readLine()) != null) {
                     response+=line;
                 }
             }
             else {
                 response="";
-
             }
             sendToReadHandler(response);
-            Log.d("Recebido: ", "wheater "+ response);
+            Log.d("Recebido: ", "weather: "+ response);
         } catch (Exception e) {
             e.printStackTrace();
         }
