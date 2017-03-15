@@ -66,13 +66,7 @@ class SendPostReqAsyncTask extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-                /*
-                if(result.equals("working")){
-                    Toast.makeText(getApplicationContext(), "HTTP POST is working...", Toast.LENGTH_LONG).show();
-
-                }else{
-                    Toast.makeText(getApplicationContext(), "Invalid POST req...", Toast.LENGTH_LONG).show();
-                }*/
+        MainActivity.saveWeatherPrevision(result);
         Log.d("Recebido", result);
     }
 }

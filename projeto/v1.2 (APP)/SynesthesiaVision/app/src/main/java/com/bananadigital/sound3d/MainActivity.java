@@ -1,12 +1,10 @@
 package com.bananadigital.sound3d;
 
-import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
-import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.media.SoundPool;
-import android.os.Build;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,11 +22,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static android.media.AudioManager.STREAM_MUSIC;
 
 //Modificado para 3 Sensores
 
@@ -37,13 +32,16 @@ public class MainActivity extends AppCompatActivity {
     private static final char DELIMITER = '\n';
 
     //Variables
-    private SoundPool soundPool;
+    //private SoundPool soundPool;
     private int soundID;
 
     private Timer timer;
     private int time = 100; //miliseconds
     private TimerTask task;
     private Boolean init = false;
+
+    private Timer timerPrevisao;
+    private TimerTask taskPrevisao;
 
     private Handler writeHandler;
 
@@ -68,8 +66,11 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox chkFrenteDireita;
     private CheckBox chkFrenteEsquerda;
 
+    private static String wheaterPrevision;
+
     private TextToSpeechManager mTTS;
     private SoundManager soundManager;
+    private GPSTracker mGPS;
 
     private boolean logarithm;
 
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private float ev;
     private float dv;
 
+    SendPostReqThread sendPostReqThread;
 
     MediaPlayer mPlayer;
 
@@ -99,20 +101,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        writeHandler = ConnectBluetooth.btt.getWriteHandler();
-        ConnectBluetooth.btt.setReadHandler(readHandler);
+        //writeHandler = ConnectBluetooth.btt.getWriteHandler();
+        //ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
-
-
-        //sound
-
-
 
         chkDireita = (CheckBox) findViewById(R.id.chkDireita);
         chkEsquerda = (CheckBox) findViewById(R.id.chkEsquerda);
         chkFrente = (CheckBox) findViewById(R.id.chkFrente);
         chkFrenteEsquerda = (CheckBox) findViewById(R.id.chkFrenteEsquerda);
         chkFrenteDireita = (CheckBox) findViewById(R.id.chkFrenteDireita);
+
+        mTTS = new TextToSpeechManager(this);
+
+        mGPS = new GPSTracker(this);
+
 
         edtTempo = (EditText) findViewById(R.id.edtTempo);
 
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnfreqVar = (Button) findViewById(R.id.freq_var);
         ToggleButton toggleModo = (ToggleButton) findViewById(R.id.toggleModo);
 
-
+        getWheaterPrevision();
 
         button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
@@ -142,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if(!init) {
                     mTTS.speak("Iniciando sonorização");
-                    turnOnTimer();
+                    createTimer();
                     timer = new Timer();
                     timer.schedule(task, 0, time);
                     Log.d(TAG, "Clicked!");
@@ -200,19 +202,42 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void playWheaterPrevision(final String wheaterPrevision) {
+
+        if(taskPrevisao != null) taskPrevisao = null;
+        taskPrevisao = new TimerTask() {
+            @Override
+            public void run() {
+                if(mTTS != null) {
+                    mTTS.speak(wheaterPrevision);
+                }
+                Log.d("wheater", "wheater: Tocado: " + wheaterPrevision);
+            }
+        };
+        timerPrevisao = new Timer();
+        timerPrevisao.schedule(taskPrevisao, 1000);
+        Log.d("wheater", "wheater: Colocado para execução");
+
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        soundManager = new SoundManager(MainActivity.this);
+        soundManager = new SoundManager(this);
         soundManager.createSoundPool();
-        mPlayer = new MediaPlayer();
-        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                mPlayer.start();
-            }
-        });
-        mTTS = new TextToSpeechManager(MainActivity.this);
+        mTTS.createTTS();
+        playWheaterPrevision(wheaterPrevision);
+
+        sendPostReqThread = new SendPostReqThread(wheaterHandler);
+
+        if(mGPS.canGetLocation()){
+            double lat = mGPS.getLatitude();
+            double lon = mGPS.getLongitude();
+            String latitude = String.valueOf(lat);
+            String longitude = String.valueOf(lon);
+            sendPostReqThread.setCoordinates(latitude, longitude);
+            sendPostReqThread.start();
+        }
     }
 
     @Override
@@ -221,12 +246,15 @@ public class MainActivity extends AppCompatActivity {
         //soundPool.release();
         playSound(R.raw.finalizar);
         if(soundManager != null) {
-            soundPool.release();
+            soundManager.destroySoundPool();
             soundManager = null;
         }
         if(mPlayer != null) {
             mPlayer.release();
             mPlayer = null;
+        }
+        if(sendPostReqThread != null) {
+            sendPostReqThread = null;
         }
     }
     /*
@@ -269,23 +297,44 @@ public class MainActivity extends AppCompatActivity {
         soundID = soundPool.load(this, R.raw.bu, 2);
     }*/
 
+    public static void saveWeatherPrevision(String received){
+        wheaterPrevision = received;
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    private void getWheaterPrevision() {
+        if(isOnline()){
+            performPostCall("http://sweetglass.azurewebsites.net/weather", "-8.058945", "-34.950434");
+        }
+    }
+
+    private void performPostCall(String requestURL1, String lat, String lon) {
+
+        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
+        /*received = */sendPostReqAsyncTask.execute(lat, lon,requestURL1);
+    }
+
     private void playSound(int file) {
-
         try {
-
-            AssetFileDescriptor afd = null;
-            afd = getResources().openRawResourceFd(file);
-
-            if(afd != null){
-                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                mPlayer.prepareAsync();
+            if(mPlayer.isPlaying()) {
+                mPlayer.stop();
+                mPlayer.release();
             }
-
+            if(mPlayer != null) mPlayer = null;
+            mPlayer = MediaPlayer.create(this, file);
+            mPlayer.start();
         } catch (Exception e) {
-            Log.e("Som", "Erro na execução do som");
+            Log.d("SOM", "Erro na execução do som");
             e.printStackTrace();
         }
     }
+
 
     private void stopTimer() {
         if(timer != null && task != null) {
@@ -298,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void turnOnTimer() {
+    private void createTimer() {
         task = new TimerTask() {
             @Override
             public void run() {
@@ -314,6 +363,8 @@ public class MainActivity extends AppCompatActivity {
         };
         Log.d(TAG, "Iniciado");
     }
+
+
     float dmax = 400;
     float frequenciaFrente = 1.0f;
     float frequenciaDireita = 1.0f;
@@ -470,12 +521,22 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
+    Handler wheaterHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+
+            String received = msg.obj.toString();
+            Log.d(TAG, "wheater" + received);
+        }
+    };
+
     public void disconnect() {
         ConnectBluetooth.btt.write("DISCONNECTED");
         if(ConnectBluetooth.btt != null) {
-            ConnectBluetooth.btt.interrupt();
-            ConnectBluetooth.btt = null;
-            startConnectBluetooth();
+            //ConnectBluetooth.btt.interrupt();
+            //ConnectBluetooth.btt = null;
+            //startConnectBluetooth();
         }
     }
 

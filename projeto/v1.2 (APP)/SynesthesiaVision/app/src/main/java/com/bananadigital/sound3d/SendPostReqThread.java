@@ -1,6 +1,7 @@
 package com.bananadigital.sound3d;
 
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -26,16 +27,20 @@ public class SendPostReqThread extends Thread {
     private URL url;
     private String response;
 
-    public SendPostReqThread(String requestURL, String latitude, String longitude, Handler handler) {
-        this.requestURL = requestURL;
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public SendPostReqThread(Handler handler) {
         this.readHandler = handler;
     }
 
+    public void setCoordinates(String latitude, String longitude){
+        this.longitude = longitude;
+        this.latitude = latitude;
+    }
+
+
+
     public void run() {
         try {
-            url = new URL(requestURL);
+            url = new URL("http://sweetglass.azurewebsites.net/weather");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(15000);
@@ -67,9 +72,21 @@ public class SendPostReqThread extends Thread {
                 response="";
 
             }
-            Log.d("Recebido: ", response);
+            sendToReadHandler(response);
+            Log.d("Recebido: ", "wheater "+ response);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Pass a message to the read handler.
+     */
+    private void sendToReadHandler(String s) {
+
+        Message msg = Message.obtain();
+        msg.obj = s;
+        readHandler.sendMessage(msg);
+        //Log.i(TAG, "[RECV] " + s);
     }
 }

@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,14 +18,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 
 public class ConnectBluetooth extends AppCompatActivity implements ListView.OnItemClickListener{
@@ -58,30 +55,12 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
+
         mTTS = new TextToSpeechManager(this);
+        mTTS.createTTS();
+
         mGPS = new GPSTracker(this);
         mGPS.getLocation();
-        mPlayer = new MediaPlayer();
-        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                mPlayer.start();
-            }
-        });
-        mTTS.createTTS();
-        Button btnSpeak = (Button) findViewById(R.id.btnSpeak);
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String latitude = String.valueOf(mGPS.getLatitude());
-                String longitude = String.valueOf(mGPS.getLongitude());
-                String received;
-                received = performPostCall("http://sweetglass.azurewebsites.net/weather", "-8.058945", "-34.950434");
-                Log.d("Connect - Recebido: ", received);
-                mTTS.speak(received);
-            }
-        });
-
 
         PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
 
@@ -122,17 +101,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         }
     }
 
-    private String performPostCall(String requestURL1, String lat, String lon) {
-        String received = "";
 
-        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
-        try {
-            received = sendPostReqAsyncTask.execute(lat, lon,requestURL1).get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return received;
-    }
 
     @Override
     protected void onResume() {
@@ -143,23 +112,29 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     @Override
     protected void onPause() {
         super.onPause();
+        playSound(R.raw.finalizar);
+        if(mPlayer.isPlaying()){
+            mPlayer.stop();
+            mPlayer.release();
+        }
     }
 
     private void playSound(int file) {
         try {
-            AssetFileDescriptor afd = null;
-            afd = getResources().openRawResourceFd(file);
-
-            if(afd != null){
-                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                mPlayer.prepareAsync();
+            if(mPlayer.isPlaying()) {
+                mPlayer.stop();
+                mPlayer.release();
             }
-
+            if(mPlayer != null) mPlayer = null;
+            mPlayer = MediaPlayer.create(this, file);
+            mPlayer.start();
         } catch (Exception e) {
-            Log.e("Som", "Erro na execução do som");
+            Log.d("SOM", "Erro na execução do som");
             e.printStackTrace();
         }
     }
+
+
     /**
      * Conecta automaticamente se houver um endereço de dispositivo já salvo anteriormente
      */
@@ -181,7 +156,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
      * Salva o endereço do dispositivo pressionado caso haja uma conexão bem sucedida
      * @param address
      */
-    void saveAddress(String address){
+    private void saveAddress(String address){
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
         SharedPreferences.Editor editor = bt_name.edit();
         editor.putString("bt_address", address);
@@ -280,7 +255,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     img.setImageDrawable(getResources().getDrawable(R.drawable.check));
                     statusConnection.setText(R.string.a_conexao);
                     btt.write("CONNECTED");
-                    playSound(R.raw.bluetooth_erro);
+                    playSound(R.raw.bluetooth_confirma);
                     Toast.makeText(getApplicationContext(),"Conectado", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
