@@ -2,7 +2,9 @@ package com.bananadigital.sound3d;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioAttributes;
+import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
@@ -91,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private float dv;
 
 
+    MediaPlayer mPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,11 +105,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         //sound
-        soundManager = new SoundManager(MainActivity.this);
-        soundManager.createSoundPool();
-        //createSoundPool();
 
-        mTTS = new TextToSpeechManager(MainActivity.this);
+
 
         chkDireita = (CheckBox) findViewById(R.id.chkDireita);
         chkEsquerda = (CheckBox) findViewById(R.id.chkEsquerda);
@@ -133,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
         Button btnfreqUnic = (Button) findViewById(R.id.freq_unic);
         Button btnfreqVar = (Button) findViewById(R.id.freq_var);
         ToggleButton toggleModo = (ToggleButton) findViewById(R.id.toggleModo);
+
+
 
         button_start.setOnClickListener(new Button.OnClickListener(){
             @Override
@@ -201,13 +203,31 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        soundManager = new SoundManager(MainActivity.this);
+        soundManager.createSoundPool();
+        mPlayer = new MediaPlayer();
+        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                mPlayer.start();
+            }
+        });
+        mTTS = new TextToSpeechManager(MainActivity.this);
     }
 
     @Override
     public void onPause() {
         super.onPause();  // Always call the superclass method first
         //soundPool.release();
-        if(soundManager != null) soundPool.release();
+        playSound(R.raw.finalizar);
+        if(soundManager != null) {
+            soundPool.release();
+            soundManager = null;
+        }
+        if(mPlayer != null) {
+            mPlayer.release();
+            mPlayer = null;
+        }
     }
     /*
     protected void createSoundPool() {
@@ -248,6 +268,24 @@ public class MainActivity extends AppCompatActivity {
         });
         soundID = soundPool.load(this, R.raw.bu, 2);
     }*/
+
+    private void playSound(int file) {
+
+        try {
+
+            AssetFileDescriptor afd = null;
+            afd = getResources().openRawResourceFd(file);
+
+            if(afd != null){
+                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                mPlayer.prepareAsync();
+            }
+
+        } catch (Exception e) {
+            Log.e("Som", "Erro na execução do som");
+            e.printStackTrace();
+        }
+    }
 
     private void stopTimer() {
         if(timer != null && task != null) {

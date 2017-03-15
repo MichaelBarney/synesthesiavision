@@ -61,13 +61,13 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         mTTS = new TextToSpeechManager(this);
         mGPS = new GPSTracker(this);
         mGPS.getLocation();
-        //mPlayer = new MediaPlayer();
-        /*mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        mPlayer = new MediaPlayer();
+        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 mPlayer.start();
             }
-        });*/
+        });
         mTTS.createTTS();
         Button btnSpeak = (Button) findViewById(R.id.btnSpeak);
         btnSpeak.setOnClickListener(new View.OnClickListener() {
@@ -137,19 +137,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            AssetFileDescriptor afd = null;
-            afd = getResources().openRawResourceFd(R.raw.synesthesia_sound);
-
-            if(afd != null){
-                //mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                //mPlayer.prepareAsync();
-            }
-
-        } catch (Exception e) {
-            Log.e("Som", "Erro na execução do som");
-            e.printStackTrace();
-        }
+        playSound(R.raw.synesthesia_sound);
     }
 
     @Override
@@ -157,6 +145,21 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         super.onPause();
     }
 
+    private void playSound(int file) {
+        try {
+            AssetFileDescriptor afd = null;
+            afd = getResources().openRawResourceFd(file);
+
+            if(afd != null){
+                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                mPlayer.prepareAsync();
+            }
+
+        } catch (Exception e) {
+            Log.e("Som", "Erro na execução do som");
+            e.printStackTrace();
+        }
+    }
     /**
      * Conecta automaticamente se houver um endereço de dispositivo já salvo anteriormente
      */
@@ -277,6 +280,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     img.setImageDrawable(getResources().getDrawable(R.drawable.check));
                     statusConnection.setText(R.string.a_conexao);
                     btt.write("CONNECTED");
+                    playSound(R.raw.bluetooth_erro);
                     Toast.makeText(getApplicationContext(),"Conectado", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
@@ -297,6 +301,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     img.setImageDrawable(getResources().getDrawable(R.drawable.cross));
                     img.setContentDescription(getString(R.string.f_conexao));
                     statusConnection.setText(R.string.f_conexao);
+                    playSound(R.raw.bluetooth_erro);
                     Toast.makeText(ConnectBluetooth.this, "Falha na Conexão", Toast.LENGTH_SHORT).show();
                     btt = null;
                     break;
