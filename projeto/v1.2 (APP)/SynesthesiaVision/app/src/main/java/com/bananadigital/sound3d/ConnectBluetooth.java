@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -44,7 +45,8 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
     private String[] permissions = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.INTERNET
     };
 
     private MediaPlayer mPlayer;
@@ -115,7 +117,6 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         super.onPause();
         playSound(R.raw.finalizar);
         if(mPlayer != null){
-            if(mPlayer.isPlaying()) mPlayer.stop();
             mPlayer.release();
         }
     }
@@ -138,12 +139,11 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private void autoConnect(){
 
         SharedPreferences bt_name = getSharedPreferences(Storage, 0);
-        String address = bt_name.getString("bt_address", "*");
-        Log.d(TAG, address);
-        Toast.makeText(this, "Conectando ao dispositivo", Toast.LENGTH_SHORT).show();
-        if(address != "*"){
+        if(bt_name.contains("bt_address")){
+            String address = bt_name.getString("bt_address", "*");
+            Log.d(TAG, address);
+            Toast.makeText(this, "Conectando ao dispositivo", Toast.LENGTH_SHORT).show();
             list_bt.setEnabled(false);
-            BluetoothDevice bt = btAdapter.getRemoteDevice(address);
             btt = new BluetoothThread(address, mHandler);
             btt.start();
         }
@@ -183,7 +183,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     break;
 
                 case RESULT_OK:
-                    if (btAdapter.isEnabled()) {
+                    //if (btAdapter.isEnabled()) {
                         Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
 
                         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
@@ -193,7 +193,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                                 adapter.add(device.getName() + "\n" + device.getAddress());
                             }
                         }
-                    }
+                    //}
                     break;
             }
         }
@@ -213,12 +213,14 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
      * @param position
      * @param id
      */
+
+    private String devAddress;
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
         String item = (String) list_bt.getAdapter().getItem(position);
         String devName = item.substring(0, item.indexOf("\n"));
-        String devAddress = item.substring(item.indexOf("\n") + 1, item.length());
+        devAddress = item.substring(item.indexOf("\n") + 1, item.length());
 
 
         Log.d(TAG, devName);
@@ -233,8 +235,6 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
 
         list_bt.setEnabled(false);
-        saveAddress(devAddress);
-
     }
 
     /**
@@ -254,11 +254,9 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     statusConnection.setText(R.string.a_conexao);
                     //btt.write("CONNECTED");
                     playSound(R.raw.bluetooth_confirma);
+                    saveAddress(devAddress);
                     Toast.makeText(getApplicationContext(),"Conectado", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                    close();
-
+                    startMain();
                     break;
                 } case "CONNECTING": {
                     img.setImageDrawable(getResources().getDrawable(R.drawable.loading));
@@ -282,6 +280,24 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
             }
         }
     };
+
+    private void startMain() {
+
+        new CountDownTimer(1000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.d("Timer", "Timer ok");
+            }
+
+            @Override
+            public void onFinish() {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+                close();
+            }
+        }.start();
+
+    }
 
 
     @Override

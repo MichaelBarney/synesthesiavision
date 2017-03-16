@@ -73,6 +73,12 @@ public class SoundManager {
         soundPool.release();
     }
 
+    public void pause() {
+        soundPool.autoPause();
+    }
 
+    public void resume() {
+        soundPool.autoResume();
+    }
 
 }

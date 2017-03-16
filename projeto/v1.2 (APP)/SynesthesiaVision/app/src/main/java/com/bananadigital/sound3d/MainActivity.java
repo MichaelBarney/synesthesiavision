@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private Timer timer;
     private int time = 100; //miliseconds
     private TimerTask task;
-    private Boolean init = false;
+    private Boolean init = true;
 
     private Timer timerPrevisao;
     private TimerTask taskPrevisao;
@@ -71,7 +72,9 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeechManager mTTS;
     private SoundManager soundManager;
     private GPSTracker mGPS;
-
+    private Vibrator vibrator;
+    private long[] patternOff = {0, 200, 200, 200};
+    private long[] patternOn = {0, 200, 200, 200, 200, 200};
     private boolean logarithm;
 
     /*
@@ -101,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        writeHandler = ConnectBluetooth.btt.getWriteHandler();
-        ConnectBluetooth.btt.setReadHandler(readHandler);
+        //writeHandler = ConnectBluetooth.btt.getWriteHandler();
+        //ConnectBluetooth.btt.setReadHandler(readHandler);
         setContentView(R.layout.activity_main);
 
         chkDireita = (CheckBox) findViewById(R.id.chkDireita);
@@ -112,9 +115,12 @@ public class MainActivity extends AppCompatActivity {
         chkFrenteDireita = (CheckBox) findViewById(R.id.chkFrenteDireita);
 
         mTTS = new TextToSpeechManager(this);
-
+        mTTS.createTTS();
         mGPS = new GPSTracker(this);
-        playSound(R.raw.bluetooth_confirma);
+        soundManager = new SoundManager(this);
+        soundManager.createSoundPool();
+
+        vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         edtTempo = (EditText) findViewById(R.id.edtTempo);
 
@@ -150,12 +156,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if(!init) {
+                if(init) {
                     mTTS.speak("Iniciando sonorização");
                     createTimer();
+                    soundManager.resume();
                     timer = new Timer();
                     timer.schedule(task, 0, time);
                     Log.d(TAG, "Clicked!");
+                    init = false;
+                    vibrator.vibrate(patternOn, -1);
+                } else {
+                    soundManager.pause();
+                    mTTS.speak("Pausando Sonorização");
+                    init = true;
+                    vibrator.vibrate(patternOff, -1);
                 }
             }
         });
@@ -172,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 stopTimer();
                 if(!edtTempo.getText().toString().equals("")) {
                     time = Integer.parseInt(edtTempo.getText().toString());
+                    if(time > 500) time = 500;
                 }
                 Log.d("TEMPO", "Tempo ajustado para: " + time);
             }
@@ -210,31 +225,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void playWeatherPrevision(final String wheaterPrevision) {
-
-        if(taskPrevisao != null) taskPrevisao = null;
-        taskPrevisao = new TimerTask() {
-            @Override
-            public void run() {
-                if(mTTS != null) {
-                    //mTTS.speak(wheaterPrevision);
-                }
-                Log.d("wheater", "wheater: Tocado: " + wheaterPrevision);
-            }
-        };
-        timerPrevisao = new Timer();
-        timerPrevisao.schedule(taskPrevisao, 1000);
-        Log.d("wheater", "wheater: Colocado para execução");
-
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-        soundManager = new SoundManager(this);
-        soundManager.createSoundPool();
-        mTTS.createTTS();
-        //playWeatherPrevision(wheaterPrevision);
+
         playSound(R.raw.bluetooth_confirma);
         sendPostReqThread = new SendPostReqThread(weatherHandler);
         getWeatherPrevision();
@@ -256,58 +250,21 @@ public class MainActivity extends AppCompatActivity {
             sendPostReqThread = null;
         }
     }
-    /*
-    protected void createSoundPool() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            createNewSoundPool();
-        } else {
-            createOldSoundPool();
-        }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mGPS != null) mGPS.stopUsingGPS();
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    protected void createNewSoundPool(){
-        AudioAttributes attributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build();
-        soundPool = new SoundPool.Builder()
-                .setAudioAttributes(attributes)
-                .build();
-
-        startSoundPool();
-    }
-
-    @SuppressWarnings("deprecation")
-    protected void createOldSoundPool(){
-        soundPool = new SoundPool(10, STREAM_MUSIC, 0);
-        startSoundPool();
-    }
-
-    private void startSoundPool() {
-        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                if(sampleId == soundID){
-                    soundPool.play(soundID, 0, 0, 0, -1, 1.0f); //id, //volume E// volume D // Prioridade// loop // rate
-                }
-            }
-        });
-        soundID = soundPool.load(this, R.raw.bu, 2);
-    }*/
-
-    public static void saveWeatherPrevision(String received){
-        wheaterPrevision = received;
-    }
-
-    public boolean isOnline() {
+    private boolean isOnline() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    public void getWeatherPrevision() {
+    private void getWeatherPrevision() {
         /*if(isOnline()){
             performPostCall("http://sweetglass.azurewebsites.net/weather", "-8.058945", "-34.950434");
         }*/
@@ -319,12 +276,6 @@ public class MainActivity extends AppCompatActivity {
             sendPostReqThread.setCoordinates(latitude, longitude);
             sendPostReqThread.start();
         }
-    }
-
-    private void performPostCall(String requestURL1, String lat, String lon) {
-
-        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
-        /*received = */sendPostReqAsyncTask.execute(lat, lon,requestURL1);
     }
 
     private void playSound(int file) {
@@ -410,7 +361,6 @@ public class MainActivity extends AppCompatActivity {
                 frequenciaEsquerda = 1.6f;
                 frequenciaFrente = 1.6f;
             }
-
 
             else {
                 v = 0.01f;
@@ -515,25 +465,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    Handler readHandler = new Handler () {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-
-            String received = msg.obj.toString();
-            if (received.equals("DISCONNECT")) {
-                Toast.makeText(getApplicationContext(),"Desconectado", Toast.LENGTH_SHORT).show();
-                ConnectBluetooth.btt.write("DISCONNECTED");
-            } else {
-                if (received != "0") {
-                    received += DELIMITER;
-                    handleMsg(received);
-                }
-            }
-        }
-
-    };
-
     Handler weatherHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -565,10 +496,6 @@ public class MainActivity extends AppCompatActivity {
         this.finish();
     }
 
-    private void makeToast (String message){
-
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
 
     ///// ---------EXTRAS----------------
     @Override
