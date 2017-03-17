@@ -60,5 +60,5 @@ This project is licensed under the GNU General Public License v3.0 License - see
 
 This project was developped in association with the Pernambuco Institute of Science Education and Technology:
 
-![alt text](http://selecaoegp2017.dead.ifpe.edu.br/res/21471-1deywpb.png "IFPE")
+![alt text](http://3.bp.blogspot.com/_L5KqKS1TcJg/TK8Qe3nMK2I/AAAAAAAAPz8/8UO_DPI0bXM/s1600/IFPE%2520foto.png "IFPE")
 
