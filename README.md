@@ -1,87 +1,52 @@
 # Synesthesia Vision
 
-This project aims to develop pairs os sensory glasses for the visually impaired with IoT and Smart City Capabilities
+This project aims to develop pairs of sensory glasses for the visually impaired with IoT and Smart City Capabilities
 
-## Getting Started
+## More Information
+[Youtube Vídeo](https://www.youtube.com/watch?v=zJbMHiAeXqk)
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=zJbMHiAeXqk
+" target="_blank"><img src="http://img.youtube.com/vi/zJbMHiAeXqk/0.jpg" 
+alt="Syneshtesia Vision - Promotional Vídeo" width="240" height="180" border="10" /></a>
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+[Facebook Page](https://www.facebook.com/synesthesiavision/?fref=ts)
 
-### Prerequisites
+### Layout of the Project
+This project consists of 4 main components:
+1. Glasses with Arduino
+2. Smartphone App
+3. Web Server
+4. IoT and Smart City Devices
 
-What things you need to install the software and how to install them
+### Glasses with Arduino
+The Arduino Code and PCB layouts for this component are found in the "Glasses_Arduino" folder.
 
-```
-Give examples
-```
+The Arduino used is the Pro_Mini, and it is connected to 3 __modules__:
+1. Array of Ultrassonic Sensors
+2. Bluetooth Module
+3. NRF24 Module
 
-### Installing
+For the sonification, the Arduino receives distance information from a __Array of Ultrassonic Sensors__, it filters these information and sends it to the Smartphone through the __Bluetooth Module__.
 
-A step by step series of examples that tell you have to get a development env running
+Both the __NRF24__ and the Smarphone allow Synesthesia Vision to connect with other IoT and Smart City devices.
 
-Say what the step will be
+## Smartphone App
 
-```
-Give the example
-```
+### Web Server
 
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+### ioT and Smart City Devices
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Michael Barney Jr** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Jonathan Kilner** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Aida Araújo Ferreira** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Caio Moreira Gomes** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/aidaferreira/synesthesiavision/contributors) who participated in this project.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the GNU General Public License v3.0 License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
