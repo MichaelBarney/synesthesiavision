@@ -1,6 +1,6 @@
 # Synesthesia Vision
 
-This project aims to develop pairs of sensory glasses for the visually impaired with IoT and Smart City Capabilities
+This project aims to develop pairs of sensory glasses for the visually impaired with IoT and Smart City Capabilities. Through and array of Ultrassonic Sensors, 3D distance information is mapped, sent to a smartphone (using an app), processed and transmitted through 3D sound via headphones. Beyond this sonification feature, other IoT and Smart City Capabilities can be added thanks to the app and the NRF24 module on the glasses.
 
 ## More Information
 [Youtube Vídeo](https://www.youtube.com/watch?v=zJbMHiAeXqk)
@@ -30,11 +30,22 @@ For the sonification, the Arduino receives distance information from a __Array o
 
 Both the __NRF24__ and the Smarphone allow Synesthesia Vision to connect with other IoT and Smart City devices.
 
-## Smartphone App
+### Smartphone App
+The Android App can be cound in the "App" folder.
 
-### Web Server
+The app assists the sonification feature, supplies the user with audio feedback for the NRF24 triggered features and connects with the Web Server to supply IoT capabilities.
 
-### ioT and Smart City Devices
+More information about the Smartphone App can be found in the "App Folder"
+
+### Web Server and ioT
+The NodeJS Server app can be found in the "Server" folder.
+
+The server connects with the smartphone, sendind and receiving requests for features found in the internet, such as retreiving weather information.
+
+More information about the Server App and a list of ioT features can be found in the "Server"
+
+### Smart City Devices
+We aim to construct a porwerfull tool for the visually impaired to interact with day-to-day activities with relative ease. This can be done with the integration with Smart City Devices, such as: bus stops and traffic lights. 
 
 ## Authors
 
@@ -50,4 +61,9 @@ See also the list of [contributors](https://github.com/aidaferreira/synesthesiav
 This project is licensed under the GNU General Public License v3.0 License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
+
+This project was developped in association with the Pernambuco Institute of Science Education and Technology:
+
+Inline-style: 
+![alt text](http://www.infoescola.com/wp-content/uploads/2015/12/Ifpe.png "IFPE")
 
