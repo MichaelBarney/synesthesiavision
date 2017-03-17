@@ -5,10 +5,6 @@ This project aims to develop pairs of sensory glasses for the visually impaired 
 ## More Information
 [Youtube Vídeo](https://www.youtube.com/watch?v=zJbMHiAeXqk)
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=zJbMHiAeXqk
-" target="_blank"><img src="http://img.youtube.com/vi/zJbMHiAeXqk/0.jpg" 
-alt="Syneshtesia Vision - Promotional Vídeo" width="240" height="180" border="10" /></a>
-
 [Facebook Page](https://www.facebook.com/synesthesiavision/?fref=ts)
 
 ### Layout of the Project
@@ -64,6 +60,5 @@ This project is licensed under the GNU General Public License v3.0 License - see
 
 This project was developped in association with the Pernambuco Institute of Science Education and Technology:
 
-Inline-style: 
-![alt text](http://www.infoescola.com/wp-content/uploads/2015/12/Ifpe.png "IFPE")
+![alt text](http://selecaoegp2017.dead.ifpe.edu.br/res/21471-1deywpb.png "IFPE")
 
