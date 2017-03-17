@@ -5,7 +5,6 @@ This project aims to develop pairs of sensory glasses for the visually impaired 
 ## More Information
 [Youtube Vídeo](https://www.youtube.com/watch?v=zJbMHiAeXqk)
 
-
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=zJbMHiAeXqk
 " target="_blank"><img src="http://img.youtube.com/vi/zJbMHiAeXqk/0.jpg" 
 alt="Syneshtesia Vision - Promotional Vídeo" width="240" height="180" border="10" /></a>
