@@ -1,104 +1,71 @@
 /*
------LOCALIZADOR POR AUDIO 3D-----------------
------V1.3-------------------------------------
------EDITADO POR MICHAEL BARNEY--------------
------3 Sensores------------------------------
 
 */
 
 
-
 #define N 10
-#define G 5
+#define G 3
+
 
 //n = number of values
 //g = number of sensors
-//d = delay
 
-int sensors[G][N];
-String alph = "abcdefghijklmnopqrstuvwxyz";
+int sensors[G][N];       //array that stores the sensors values
+String alph = "abcdefghijklmnopqrstuvwxyz"; //alphabetical to identify sensor and the distance
+String bluetooth_tx_buffer = "";  //buffer used to send the data
 
-boolean startCycle = false;
-String received = "";
-char DELIMITER = '\n';
+const byte primaryButton = 2;
+
+// Variables will change:
+int ledState = HIGH;         // the current state of the output pin
+int buttonState;             // the current reading from the input pin
+int lastButtonState = LOW;   // the previous reading from the input pin
+
+// the following variables are unsigned long's because the time, measured in miliseconds,
+// will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
+char DELIMITER = '\n';  //added in the final string before its send
 
 void setup() {
   //Begin Serial
   Serial.begin (9600);
   
   //set pins for sensors
-  for(int x = 2; x <= (1 + G*2); x++){
-    //if odd number then set it as a trigger to outpput
+  for(int x = 4; x <= (G*3); x++){
+    //if value is pair, so set to input
     if(x % 2){
       pinMode(x, INPUT);
     }
-    //else, set it as a echo pin to input
+    //else set it to output
     else{
       pinMode(x, OUTPUT);
     }
   }
+
+  //Set the pins 2 and 3 to HIGH state internally
+  pinMode(primaryButton, INPUT_PULLUP);
+  //pinMode(secondaryButton, INPUT_PULLUP);
 }
-
-
-
 
 void loop() {
-
-  /*if(Serial.available()) {
-    
-    while(Serial.available()) {
-      received += (char)Serial.read();
-    }
-    
-    // Look for complete messages
-    parseReadBuffer();
-  }*/
-  //if(startCycle) {
-    for(int i = 0; i < G; i++){
-       if(i == 0 ||i == 2 || i == 4){
-          Serial.print(alph.charAt(i));
-          Serial.println(getDistance(i));
-       }
-    }
-  //}
   
+  //Sets the first pin (5) for activate the trigger
+  for(int i = 0; i < G; i++){
+      Serial.print(alph.charAt(i));
+      Serial.println(getDistance(i));
+  }
+  //check if the weather forecast button is pressioned, if true send a forecast requisition to smartphone
+  if(checkButtonState(primaryButton)) Serial.println("getweather");
+  delay(1000);
 }
-
-
-void parseReadBuffer() {
-  
-  // Find the first delimiter in the buffer
-  int inx = received.indexOf(DELIMITER);
-  
-  // If there is none, exit
-  if (inx == -1) return;
-  
-  // Get the complete message, minus the delimiter
-  String s = received.substring(0, inx);
-  
-  // Remove the message from the buffer
-  received = received.substring(inx + 1);
-  
-  // Process the message
-  //gotMessage(s);
-  
-  // Look for more complete messages
-  parseReadBuffer();
-}
-
-
-void gotMessage(String message) {
-  
-  //Serial.println("[RECV]: " + message);
-}
-
-
 
 
 long getDistance(int s){
   //int n = s - 1;
   //get the pins
-  int t = 2 + 2*s;
+  int t = 4 + 2*s;
   int e = t + 1;
 
   //get duration and distance
@@ -112,7 +79,7 @@ long getDistance(int s){
   distance = (duration/2) / 29.1;
   
   //filter
-  long filtered;  
+  long filtered;
   for(int i = N-1; i > 0; i--){
     sensors[s][i] = sensors[s][i - 1];
   }
@@ -126,3 +93,48 @@ long getDistance(int s){
   
   return filtered;
 }
+
+int checkButtonState(int button){
+  //Source: Arduino, modified by: KilnerJhow
+  // read the state of the switch into a local variable:
+  int reading = digitalRead(button);
+
+  // check to see if you just pressed the button
+  // (i.e. the input went from LOW to HIGH),  and you've waited
+  // long enough since the last press to ignore any noise:
+
+  // If the switch changed, due to noise or pressing:
+  if (reading != lastButtonState) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer
+    // than the debounce delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      /// return 1 if the state of button has changed, 0 else not
+      if (buttonState == LOW) {
+        
+        // save the reading.  Next time through the loop,
+        // it'll be the lastButtonState:
+        lastButtonState = reading;
+        return 1;
+      }
+    }
+  }
+  // save the reading.  Next time through the loop,
+  // it'll be the lastButtonState:
+  lastButtonState = reading;
+  return 0;
+}
+/*
+void turnOn(){
+  delay(500);
+  Serial.println("turnon");
+}*/
+

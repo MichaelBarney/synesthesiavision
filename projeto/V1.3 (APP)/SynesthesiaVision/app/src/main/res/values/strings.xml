@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">SynesthesiaVision</string>
-    <string name="failed">FAILED</string>
-    <string name="connected">CONNECTED!</string>
-    <string name="connecting">CONNECTING</string>
-    <string name="action_settings">Settings</string>
-</resources>
