@@ -30,12 +30,13 @@ public class SoundManager {
      */
     public SoundManager(Context context) {
         this.context = context;
+        createSoundPool();
     }
 
     /**
      * Creates a sound pool.
      */
-    public void createSoundPool() {
+    private void createSoundPool() {
         //If Android Version is new, create the new soundPool, else create oldSoundPool
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             createNewSoundPool();

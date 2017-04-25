@@ -20,10 +20,6 @@ import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-/**
- * Created by Jonathan on 11/03/2017.
- */
-
 public class GPSTracker extends Service implements LocationListener{
 
     private final Context mContext;
@@ -39,7 +35,7 @@ public class GPSTracker extends Service implements LocationListener{
     private double longitude;
 
     // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 20; // 20 meters
 
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
@@ -184,7 +180,7 @@ public class GPSTracker extends Service implements LocationListener{
         alertDialog.setTitle("GPS is settings");
 
         // Setting Dialog Message
-        alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
+        alertDialog.setMessage("GPS não ativo, gostaria de ir para as configurações para Ativar?");
 
         // Setting Icon to Dialog
         //alertDialog.setIcon(R.drawable.delete);

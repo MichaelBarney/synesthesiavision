@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Synesthesia Vision</string>
     <string name="action_settings">Settings</string>
@@ -25,9 +26,4 @@
         execução do som, tornando-o mais rápido. A frequência máxima é de 1 hertz.
     </string>
     <string name="dispositivos">Dispositivos</string>
-    <string name="a_conexao">Conectado</string>
-    <string name="conectando">conectando</string>
-    <string name="f_conexao">falha na conexão</string>
-
-
 </resources>

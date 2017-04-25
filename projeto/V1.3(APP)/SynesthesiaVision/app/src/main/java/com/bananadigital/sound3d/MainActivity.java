@@ -1,14 +1,10 @@
 package com.bananadigital.sound3d;
 
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -25,25 +21,16 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.felhr.usbserial.UsbSerialDevice;
-import com.felhr.usbserial.UsbSerialInterface;
-
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    public final String ACTION_USB_PERMISSION = "com.hariharan.arduinousb.USB_PERMISSION";
-
+    //public final String ACTION_USB_PERMISSION = "com.hariharan.arduinousb.USB_PERMISSION";
 
     //Used for prints message with TAG on Android Monitor.
     private static final String TAG = "MainActivity" ;
@@ -53,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int MAX = 10; //max frequency for frequencySound
     private static final int MIN = 1;
 
-    private static String received;
+    //private static String received;
 
     //Utils
     private Timer timer;
@@ -61,18 +48,22 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer mPlayer;
     private Vibrator vibrator;
 
+    private boolean canGetWeather = true;
+    private int count = 0;
+    private boolean mTTS_Spoke = true;
 
+    /*
     private UsbManager usbManager;
     private UsbDevice device;
     private UsbSerialDevice serialPort;
-    private UsbDeviceConnection connection;
+    private UsbDeviceConnection connection;*/
 
     //private Handler writeHandler;
 
     //Variables
     private int frequencySound_ms = 100; //miliseconds
     private int frequencySound = 1;
-    private Boolean init = true;
+    private boolean init = true;
     private int number_sensor = 5; //number of sensors
     private int current_sensor = 0; //current sensor
     private float[] distance_sensor = new float[number_sensor];
@@ -86,13 +77,10 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox chkRight;
     private Button btnStart;
     private Button btnDisconnect;
-    private Button btnApply;
     private Button btnWeather;
     private Button btnIncreaseFrequency;
     private Button btnDecraseFrequency;
     private TextView txtFrequency;
-    private SeekBar seekFrequency;
-    private EditText edtWeather;
 
     private TextView txtLeft;
     private TextView txtRight;
@@ -119,17 +107,18 @@ public class MainActivity extends AppCompatActivity {
         //writeHandler = ConnectBluetooth.btt.getWriteHandler();
 
         //Sets the readHandler to manage the received messages.
-        //ConnectBluetooth.btt.setReadHandler(readHandler);
+        ConnectBluetooth.btt.setReadHandler(readHandler);
 
         //Create a filter and add it a callback to manage events with bluetooh, like when device is disconnected
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         this.registerReceiver(mReceiver, filter);
-        IntentFilter filter1 = new IntentFilter();
+
+        /*IntentFilter filter1 = new IntentFilter();
         filter1.addAction(ACTION_USB_PERMISSION);
         filter1.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter1.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         this.registerReceiver(broadcastReceiver, filter1);
-        usbManager = (UsbManager) getSystemService(USB_SERVICE);
+        usbManager = (UsbManager) getSystemService(USB_SERVICE);*/
 
 
         createInstances();
@@ -144,8 +133,8 @@ public class MainActivity extends AppCompatActivity {
         if(!mGPS.canGetLocation()) mGPS.showSettingsAlert();
         if(soundManager == null) {
             soundManager = new SoundManager(this);
-            soundManager.createSoundPool();
         }
+
     }
 
     @Override
@@ -166,9 +155,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         if(mGPS != null) mGPS.stopUsingGPS();
-        unregisterReceiver(mReceiver);
-        unregisterReceiver(broadcastReceiver);
         if(mTTS != null) mTTS.destroyTTS();
+        unregisterReceiver(mReceiver);
+
     }
 
     /**
@@ -186,8 +175,15 @@ public class MainActivity extends AppCompatActivity {
         btnIncreaseFrequency = (Button) findViewById(R.id.btnIncrease);
         btnDecraseFrequency = (Button) findViewById(R.id.btnDeacrease);
 
+        btnStart.setContentDescription(getResources().getString(R.string.description_btn_start));
+        btnDisconnect.setContentDescription(getResources().getString(R.string.description_btn_disconnect));
+        btnWeather.setContentDescription(getResources().getString(R.string.description_btn_weather));
+        btnIncreaseFrequency.setContentDescription(getResources().getString(R.string.description_btn_increase_frequency));
+        btnDecraseFrequency.setContentDescription(getResources().getString(R.string.description_btn_decrease_frequency));
+
+
         txtFrequency = (TextView) findViewById(R.id.txtFrequency);
-        txtFrequency.setText("1/10 Hz");
+        txtFrequency.setText(MIN + "/" + MAX);
 
         txtFront = (TextView) findViewById(R.id.txtFront);
         txtLeft = (TextView) findViewById(R.id.txtLeft);
@@ -197,32 +193,17 @@ public class MainActivity extends AppCompatActivity {
         txtRight.setText("");
         txtLeft.setText("");
 
-        /*
-        chkRight = (CheckBox) findViewById(R.id.chkRight);
-        chkLeft = (CheckBox) findViewById(R.id.chkLeft);
-        chkFront = (CheckBox) findViewById(R.id.chkFront);
-
-
-        button_start = (Button) findViewById(R.id.button_start);
-        button_disconnect = (Button) findViewById(R.id.btn_disconnect);
-        btnAplicar = (Button) findViewById(R.id.btnOk);
-        btnTempo = (Button) findViewById(R.id.btnTempo);
-        */
-
-        //edtTempo = (EditText) findViewById(R.id.edtTempo);
-
     }
 
     /**
      * Creates instances of another classes.
      */
     private void createInstances() {
-        mTTS = new TextToSpeechManager(this);
-        mTTS.createTTS();
-        mGPS = new GPSTracker(this);
+        Context mContext = getApplicationContext();
+        mTTS = new TextToSpeechManager(mContext);
+        mGPS = new GPSTracker(mContext);
         mWeatherForecast = new WeatherForecast(weatherHandler);
-        soundManager = new SoundManager(this);
-        soundManager.createSoundPool();
+        soundManager = new SoundManager(mContext);
         vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
@@ -241,6 +222,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("weather", "weather acquired");
             }
         });
+
+        btnWeather.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mTTS.speak(getResources().getString(R.string.description_btn_weather_long));
+                return false;
+            }
+        });
+
 
         //Start the sound when the button is clicked.
         btnStart.setOnClickListener(new Button.OnClickListener(){
@@ -270,6 +260,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnStart.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mTTS.speak(getResources().getString(R.string.descritption_btn_start_long));
+                return false;
+            }
+        });
+
         //Disconnect the bluetooth socket with glasses
         btnDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -296,6 +294,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnIncreaseFrequency.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mTTS.speak(getResources().getString(R.string.description_btn_increase_long));
+                return false;
+            }
+        });
+
         btnDecraseFrequency.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -313,25 +319,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-        //Set the frequencySound_ms choosed on interface
-        /*btnAplicar.setOnClickListener(new View.OnClickListener() {
+        btnDecraseFrequency.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public void onClick(View v) {
-                stopTimer();
-                if(!edtTempo.getText().toString().equals("")) {
-
-                    //Get frequencySound_ms from EditText.
-                    frequencySound_ms = Integer.parseInt(edtTempo.getText().toString());
-                    
-                    //If frequencySound_ms is too large, the frequencySound_ms is set to the maximum frequencySound_ms.
-                    if(frequencySound_ms > 500) frequencySound_ms = 500;
-                    button_start.performClick();
-                    button_start.performClick();
-                }
-                Log.d("TEMPO", "Tempo ajustado para: " + frequencySound_ms);
+            public boolean onLongClick(View v) {
+                mTTS.speak(getResources().getString(R.string.description_btn_decrease_long));
+                return false;
             }
-        });*/
+        });
     }
 
     /**
@@ -367,6 +361,11 @@ public class MainActivity extends AppCompatActivity {
 
             //Start the weather forecast
             mWeatherForecast.getWeather();
+        } else if(!mGPS.canGetLocation()) {
+            mTTS.speak("GPS Desativado, por favor ative!");
+            mGPS.showSettingsAlert();
+        } else if(!isOnline()){
+            mTTS.speak("Por favor ative a rede de dados.");
         }
     }
 
@@ -500,9 +499,6 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Handler that will handle the data which comes through Bluetooth socket.
      */
-    private Boolean canGetWeather = true;
-    private int count = 0;
-
     Handler readHandler = new Handler () {
 
         @Override
@@ -517,10 +513,11 @@ public class MainActivity extends AppCompatActivity {
             //if(received.contains("turnon")) turnOn();
             if(received.contains("getweather")) {
                 //getWeatherForecast();
-                if(canGetWeather) {
+                if(canGetWeather && mTTS_Spoke) {
                     count++;
                     Log.d("On Main", "Weather Forecast acquisicion received, count: " + count);
                     canGetWeather = false;
+                    mTTS_Spoke = false;
                     new CountDownTimer(5000, 5000) {
                         @Override
                         public void onTick(long millisUntilFinished) {
@@ -559,6 +556,9 @@ public class MainActivity extends AppCompatActivity {
 
             //Get message from class Message and turn into a String.
             String received = msg.obj.toString();
+
+            //Allow to user get another weather forecast
+            mTTS_Spoke = true;
 
             //Make TTS speak the weather forecast.
             mTTS.speak(received);
@@ -602,12 +602,12 @@ public class MainActivity extends AppCompatActivity {
      */
     public void disconnect() {
         //ConnectBluetooth.btt.write("DISCONNECTED");
-        /*if(ConnectBluetooth.btt != null) {
+        if(ConnectBluetooth.btt != null) {
             ConnectBluetooth.btt.interrupt();
             ConnectBluetooth.btt = null;
             Toast.makeText(this, "Desconectado", Toast.LENGTH_SHORT).show();
             startConnectBluetooth();
-        }*/
+        }
         txtFront.setText("");
     }
 
@@ -631,104 +631,12 @@ public class MainActivity extends AppCompatActivity {
             String action = intent.getAction();
 
             if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
-                //Do something if disconnected
-                //ConnectBluetooth.btt.interrupt();
-                //Toast.makeText(getApplicationContext(), "BT Disconnected", Toast.LENGTH_SHORT).show();
-            }
-            //else if...
-        }
-    };
-
-
-    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() { //Broadcast Receiver to automatically start and stop the Serial connection.
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
-                boolean granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
-                if (granted) {
-                    connection = usbManager.openDevice(device);
-                    serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
-                    if (serialPort != null) {
-                        if (serialPort.open()) { //Set Serial Connection Parameters.
-                            serialPort.setBaudRate(9600);
-                            serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
-                            serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
-                            serialPort.setParity(UsbSerialInterface.PARITY_NONE);
-                            serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
-                            serialPort.read(mCallback);
-
-                        } else {
-                            Log.d("SERIAL", "PORT NOT OPEN");
-                        }
-                    } else {
-                        Log.d("SERIAL", "PORT IS NULL");
-                    }
-                } else {
-                    Log.d("SERIAL", "PERM NOT GRANTED");
-                }
-            } else if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                onClickStart();
-            } else if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
-                serialPort.close();
+                //If bluetooth is disconnected then interrupt the socket and init the ConnectBluetooth activity
+                ConnectBluetooth.btt.interrupt();
+                Toast.makeText(getApplicationContext(), "BT Disconnected", Toast.LENGTH_SHORT).show();
             }
         }
     };
-
-    UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() { //Defining a Callback which triggers whenever data is read.
-        @Override
-        public void onReceivedData(byte[] arg0) {
-            String data;
-            try {
-                received = new String(arg0, "UTF-8");
-                Log.d("Serial", "RECEIVED:" + received);
-                //data = data.concat("/n");
-                //data += '\n';
-                //handleMsg(received);
-                tvAppend(txtFront, received);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
-
-        }
-    };
-    public void onClickStart() {
-
-        HashMap<String, UsbDevice> usbDevices = usbManager.getDeviceList();
-        if (!usbDevices.isEmpty()) {
-            boolean keep = true;
-            for (Map.Entry<String, UsbDevice> entry : usbDevices.entrySet()) {
-                device = entry.getValue();
-                int deviceVID = device.getVendorId();
-                if (deviceVID == 0x2341 || deviceVID == 4292 ){
-                    PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-                    usbManager.requestPermission(device, pi);
-                    keep = false;
-                } else {
-                    connection = null;
-                    device = null;
-                }
-
-                if (!keep)
-                    break;
-            }
-        }
-
-
-    }
-
-
-    private void tvAppend(TextView tv, CharSequence text) {
-        final TextView ftv = tv;
-        final CharSequence ftext = text;
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ftv.append(ftext);
-            }
-        });
-    }
 
     ///// ---------EXTRAS----------------
     @Override
