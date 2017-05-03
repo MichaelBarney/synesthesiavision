@@ -47,8 +47,8 @@ We aim to construct a porwerfull tool for the visually impaired to interact with
 
 * **Michael Barney Jr**
 * **Jonathan Kilner**
+* **Gilmar Brito**
 * **Aida Araújo Ferreira** 
-* **Caio Moreira Gomes**
 
 See also the list of [contributors](https://github.com/aidaferreira/synesthesiavision/contributors) who participated in this project.
 
