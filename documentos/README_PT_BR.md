@@ -1,21 +1,22 @@
 # Synesthesia Vision
 
-This project aims to develop pairs of sensory glasses for the visually impaired with IoT and Smart City Capabilities. Through and array of Ultrassonic Sensors, 3D distance information is mapped, sent to a smartphone (using an app), processed and transmitted through 3D sound via headphones. Beyond this sonification feature, other IoT and Smart City Capabilities can be added thanks to the app and the NRF24 module on the glasses.
+Esse projeto visa a construção de um óculos sensorial para deficientes visuais com capacidades de conectar-se a cidades inteligentes 
 
-## More Information
+
+## Mais informações
 [Youtube Vídeo](https://www.youtube.com/watch?v=zJbMHiAeXqk)
 
 [Facebook Page](https://www.facebook.com/synesthesiavision/?fref=ts)
 
-## Layout of the Project
+## Layout do projeto
 This project consists of 4 main components:
-1. Glasses with Arduino
+1. Óculos com Arduino
 2. Smartphone App
 3. Web Server
-4. IoT and Smart City Devices
+4. IoT  Smart City Devices
 
-### Glasses with Arduino
-The Arduino Code and PCB layouts for this component are found in the "files_project\Glasses_Arduino" folder.
+### Óculos com Arduino
+The Arduino Code and PCB layouts for this component are found in the "Glasses_Arduino" folder.
 
 The Arduino used is the Pro_Mini, and it is connected to 3 __modules__:
 1. Array of Ultrassonic Sensors
@@ -27,18 +28,18 @@ For the sonification, the Arduino receives distance information from a __Array o
 Both the __NRF24__ and the Smarphone allow Synesthesia Vision to connect with other IoT and Smart City devices.
 
 ### Smartphone App
-The Android App can be cound in the "files_project\Synesthesia_APP" folder.
+The Android App can be cound in the "App" folder.
 
 The app assists the sonification feature, supplies the user with audio feedback for the NRF24 triggered features and connects with the Web Server to supply IoT capabilities.
 
-More information about the Smartphone App can be found in the App Folder
+More information about the Smartphone App can be found in the "App Folder"
 
 ### Web Server and ioT
-The NodeJS Server app can be found in the "files_project\Server" folder.
+The NodeJS Server app can be found in the "Server" folder.
 
 The server connects with the smartphone, sendind and receiving requests for features found in the internet, such as retreiving weather information.
 
-More information about the Server App and a list of IoT features can be found in the Server folder.
+More information about the Server App and a list of ioT features can be found in the "Server"
 
 ### Smart City Devices
 We aim to construct a porwerfull tool for the visually impaired to interact with day-to-day activities with relative ease. This can be done with the integration with Smart City Devices, such as: bus stops and traffic lights. 
