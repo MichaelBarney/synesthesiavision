@@ -3,7 +3,7 @@
 This project aims to develop pairs of sensory glasses for the visually impaired with IoT and Smart City Capabilities. Through and array of Ultrassonic Sensors, 3D distance information is mapped, sent to a smartphone (using an app), processed and transmitted through 3D sound via headphones. Beyond this sonification feature, other IoT and Smart City Capabilities can be added thanks to the app and the NRF24 module on the glasses.
 
 ## More Information
-[Youtube Vídeo](https://www.youtube.com/watch?v=zJbMHiAeXqk)
+[Youtube Video](https://www.youtube.com/watch?v=zJbMHiAeXqk)
 
 [Facebook Page](https://www.facebook.com/synesthesiavision/?fref=ts)
 
