@@ -15,7 +15,7 @@ This project consists of 4 main components:
 4. IoT and Smart City Devices
 
 ### Glasses with Arduino
-The Arduino Code and PCB layouts for this component are found in the "files_project\Glasses_Arduino" folder.
+The Arduino Code and PCB layouts for this component are found in the "Glasses_Arduino" folder.
 
 The Arduino used is the Pro_Mini, and it is connected to 3 __modules__:
 1. Array of Ultrassonic Sensors
@@ -24,17 +24,17 @@ The Arduino used is the Pro_Mini, and it is connected to 3 __modules__:
 
 For the sonification, the Arduino receives distance information from a __Array of Ultrassonic Sensors__, it filters these information and sends it to the Smartphone through the __Bluetooth Module__.
 
-Both the __NRF24__ and the Smarphone allow Synesthesia Vision to connect with other IoT and Smart City devices.
+Both the __NRF24__ and the Smartphone allow Synesthesia Vision to connect with other IoT and Smart City devices.
 
 ### Smartphone App
-The Android App can be cound in the "files_project\Synesthesia_APP" folder.
+The Android App can be found in the "Synesthesia_APP" folder, the app is developed on Android Studio.
 
 The app assists the sonification feature, supplies the user with audio feedback for the NRF24 triggered features and connects with the Web Server to supply IoT capabilities.
 
 More information about the Smartphone App can be found in the App Folder
 
 ### Web Server and ioT
-The NodeJS Server app can be found in the "files_project\Server" folder.
+The NodeJS Server app can be found in the "Server" folder.
 
 The server connects with the smartphone, sendind and receiving requests for features found in the internet, such as retreiving weather information.
 
