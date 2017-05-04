@@ -37,6 +37,8 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
     private Set<BluetoothDevice> pairedDevices;
     private ListView list_bt;
 
+    private boolean isBluetoothOn = false;
+
     //Views Variables
     private TextView statusConnection;
 
@@ -62,14 +64,16 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
 
-        //Bundle bundle = getIntent().getExtras();
-        //if(bundle != null) message = bundle.getString("status");
-        //else message = "connect";
+        Bundle bundle = getIntent().getExtras();
+        if(bundle != null) {
+            if(bundle.getString("status") != null) message = bundle.getString("status");
+        } else {
+            Log.d("On Connect Bluetooth", "Message: to connect");
+            message = "connect";
+        }
 
-        PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
         findViews();
         checkBluetoothConnection();
-
         playSound(R.raw.synesthesia_sound);
     }
 
@@ -104,13 +108,15 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent, ENABLE_BLUETOOTH);
         } else {
-
+            getPermissions();
             if(!message.equals("disconnected")) autoConnect();
-
             getDevices();
         }
     }
 
+    private void getPermissions() {
+        PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
+    }
 
     private void playSound(int file) {
         try {
@@ -172,9 +178,22 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
                     break;
 
                 case RESULT_OK:
-                    
+                    getPermissions();
                     getDevices();
                     break;
+            }
+        }
+    }
+
+
+    public void getDevices() {
+        Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
+        list_bt.setAdapter(adapter);
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                adapter.add(device.getName() + "\n" + device.getAddress());
             }
         }
     }
@@ -210,12 +229,12 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         // Run the thread
         btt.start();
 
-
+        //Set touch on list false for not occasionate errors (like creating 2 bluetooth connections)
         list_bt.setEnabled(false);
     }
 
     /**
-     * Responsável por manusear as mensagens vindas da Thread do Bluetooth
+     * Receives the messages which come from Bluetooth Thread
      */
     Handler mHandler = new Handler() {
 
@@ -282,7 +301,7 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
 
                 Log.d("Permissoes", "Permissões garantidas!");
             }else{
-                //Displaying another toast if permission is not granted
+                //Displaying another toast if permission is not granted and closing application
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Permissões negadas");
                 builder.setPositiveButton("Confirmar", new DialogInterface.OnClickListener() {
@@ -298,15 +317,4 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         }
     }
 
-    public void getDevices() {
-        Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
-        list_bt.setAdapter(adapter);
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                adapter.add(device.getName() + "\n" + device.getAddress());
-            }
-        }
-    }
 }

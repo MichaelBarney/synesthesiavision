@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private int frequencySound_ms = 100; //miliseconds
     private int frequencySound = 1;
     private boolean init = true;
-    private int number_sensor = 5; //number of sensors
+    private int number_sensor = 3; //number of sensors
     private int current_sensor = 0; //current sensor
     private float[] distance_sensor = new float[number_sensor];
     private float frequencyFront = 1.0f;
@@ -456,13 +456,13 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
         }
         //Front Sensor
-        else if(sensor == 2 && chkFront.isChecked()){
+        else if(sensor == 1 && chkFront.isChecked()){
             soundManager.setVolume(volume/2, volume/2);
             soundManager.setRate(frequencyFront);
             Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
         }
         //Right Sensor
-        else if(sensor == 4 && chkRight.isChecked()){
+        else if(sensor == 2 && chkRight.isChecked()){
             soundManager.setVolume(0, volume);
             soundManager.setRate(frequencyRight);
             Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
@@ -481,12 +481,12 @@ public class MainActivity extends AppCompatActivity {
         //Log.d("MainActivity", "Data Saved: "+ sensor + " " + distance);
         //Right
         if(sensor == 'a'){
-            distance_sensor[4] = distance;
+            distance_sensor[2] = distance;
             txtRight.setText(String.valueOf(distance));
         }
         //Front
         else if(sensor == 'b'){
-            distance_sensor[2] = distance;
+            distance_sensor[1] = distance;
             txtFront.setText(String.valueOf(distance));
         }
         //Left

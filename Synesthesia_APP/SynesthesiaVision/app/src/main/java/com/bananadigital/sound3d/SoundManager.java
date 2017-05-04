@@ -28,7 +28,7 @@ public class SoundManager {
      *
      * @param      context  Receives a context from the class that created it
      */
-    public SoundManager(Context context) {
+    SoundManager(Context context) {
         this.context = context;
         createSoundPool();
     }

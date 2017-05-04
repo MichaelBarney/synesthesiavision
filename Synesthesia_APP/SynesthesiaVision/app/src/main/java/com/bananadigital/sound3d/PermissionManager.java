@@ -21,7 +21,7 @@ public class PermissionManager {
      * @param      permissions  The permissions
      * @param      requestCode  The request code
      *
-     * @return     return true when the permission is granted, else return false
+     * @return     return true when the permission is granted, else start activity compat to request permissions
      */
     public static boolean checkPermission(Activity activity, String[] permissions, int requestCode){
 
