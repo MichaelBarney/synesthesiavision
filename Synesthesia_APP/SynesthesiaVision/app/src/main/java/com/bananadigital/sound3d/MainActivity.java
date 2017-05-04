@@ -239,7 +239,8 @@ public class MainActivity extends AppCompatActivity {
 
                 //If init = true, the sound starts else, its stop
                 if(init) {
-                    frequencySound_ms = (int) (float)(1/frequencySound); //hz to s
+                    float frequency_Sound = (float) 1/frequencySound * 1000;
+                    frequencySound_ms = (int) frequency_Sound; //hz to s
 
                     Log.d(TAG, "Sound Frequency: " + frequencySound_ms);
 
@@ -281,14 +282,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(frequencySound < MAX) {
                     frequencySound += 1;
+                    mTTS.speak("Aumentando frequência");
                     txtFrequency.setText((frequencySound) + "/"+MAX+" Hz");
                     if(!init) {
                         stopTimer();
                         btnStart.performClick();
                     }
                 } else {
-                    mTTS.speak("Frequencia maxima atingida");
-
+                    mTTS.speak("Frequência máxima atingida");
                 }
                 Log.d("Main", "Frequency: " + frequencySound);
             }
@@ -307,13 +308,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(frequencySound > MIN){
                     frequencySound -= 1;
+                    mTTS.speak("Diminuindo Frequência");
                     txtFrequency.setText((frequencySound) + "/"+MAX+" Hz");
                     if(!init) {
                         stopTimer();
                         btnStart.performClick();
                     }
                 } else {
-                    mTTS.speak("Frequencia minima atingida");
+                    mTTS.speak("Frequência mínima atingida");
                 }
                 Log.d("Main", "Frequency: " + frequencySound);
             }
@@ -407,11 +409,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
             
-                current_sensor ++;
-                if(current_sensor == number_sensor) {
+
+                if(current_sensor+1 >= number_sensor) {
                     current_sensor = 0;
                 }
                 playAudio(current_sensor);  //Plays audio for specified sensor during the frequencySound_ms.
+                current_sensor++;
                 //Log.d("TEMPO", "tempo: " + frequencySound_ms);
             }
         };
