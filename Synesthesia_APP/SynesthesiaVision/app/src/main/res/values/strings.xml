@@ -26,8 +26,8 @@
     </string>
     <string name="dispositivos">Dispositivos</string>
     <string name="a_conexao">Conectado</string>
-    <string name="conectando">conectando</string>
-    <string name="f_conexao">falha na conexão</string>
+    <string name="conectando">Conectando</string>
+    <string name="f_conexao">Falha na Conexão</string>
 
 
 </resources>
