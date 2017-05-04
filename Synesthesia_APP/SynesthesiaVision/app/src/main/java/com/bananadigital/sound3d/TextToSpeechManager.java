@@ -12,12 +12,16 @@ public class TextToSpeechManager {
     private TextToSpeech mTTS;
     private Context mContext;
 
+    TextToSpeechManager(){
+
+    }
+
     TextToSpeechManager(Context context) {
         this.mContext = context;
         createTTS();
     }
 
-    private void createTTS() {
+    public void createTTS() {
 
         //Creates an instance of Google API TTS
         mTTS = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {

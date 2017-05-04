@@ -1,16 +1,9 @@
 package com.bananadigital.sound3d;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -22,9 +15,6 @@ import android.widget.TextView;
 
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static com.bananadigital.sound3d.R.id.edtTempo;
-import static com.bananadigital.sound3d.R.id.seekFront;
 
 /**
  * Created by Jonathan on 02/04/2017.
@@ -107,10 +97,8 @@ public class W4All extends AppCompatActivity {
         vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         mTTS = new TextToSpeechManager(this);
-        mTTS.createTTS();
 
         soundManager = new SoundManager(this);
-        soundManager.createSoundPool();
 
         chkDireita = (CheckBox) findViewById(R.id.chkRight);
         chkEsquerda = (CheckBox) findViewById(R.id.chkLeft);

@@ -62,9 +62,9 @@ public class ConnectBluetooth extends AppCompatActivity implements ListView.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bt_connect);
 
-        Bundle bundle = getIntent().getExtras();
-        if(bundle != null) message = bundle.getString("status");
-        else message = "connect";
+        //Bundle bundle = getIntent().getExtras();
+        //if(bundle != null) message = bundle.getString("status");
+        //else message = "connect";
 
         PermissionManager.checkPermission(this, permissions, PERMISSION_CODE );
         findViews();
