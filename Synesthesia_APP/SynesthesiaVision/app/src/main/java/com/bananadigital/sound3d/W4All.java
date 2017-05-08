@@ -380,31 +380,31 @@ public class W4All extends AppCompatActivity {
 
         //Left Sensor
         if(sensor == 0 && chkEsquerda.isChecked()){
-            soundManager.setVolume(volume, 0);                          //Set the volume according to the sensor passed to function.
-            soundManager.setRate(frequenciaEsquerda);                   //Set the specified frequency.
+            soundManager.setVolume(1, volume, 0);                          //Set the volume according to the sensor passed to function.
+            soundManager.setRate(1, frequenciaEsquerda);                   //Set the specified frequency.
             Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
         }
         else if(sensor == 1 && chkFrenteEsquerda.isChecked()){
-            soundManager.setVolume( (volume * 3) / 4, volume / 4);
-            soundManager.setRate(frequenciaFrenteEsquerda);
+            //soundManager.setVolume( (volume * 3) / 4, volume / 4);
+            //soundManager.setRate(frequenciaFrenteEsquerda);
         }
         //Front Sensor
         else if(sensor == 2 && chkFrente.isChecked()){
-            soundManager.setVolume(volume/2, volume/2);
-            soundManager.setRate(frequenciaFrente);
+            soundManager.setVolume(3, volume/2, volume/2);
+            soundManager.setRate(3, frequenciaFrente);
             Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
         }
 
         //Top Right
         else if(sensor == 3 && chkFrenteDireita.isChecked()){
-            soundManager.setVolume( volume / 4, (volume * 3) / 4);
-            soundManager.setRate(frequenciaFrenteDireita);
+            //soundManager.setVolume( volume / 4, (volume * 3) / 4);
+            //soundManager.setRate(frequenciaFrenteDireita);
         }
 
         //Right Sensor
         else if(sensor == 4 && chkDireita.isChecked()){
-            soundManager.setVolume(0, volume);
-            soundManager.setRate(frequenciaDireita);
+            soundManager.setVolume(2, 0, volume);
+            soundManager.setRate(2, frequenciaDireita);
             Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
         }
 

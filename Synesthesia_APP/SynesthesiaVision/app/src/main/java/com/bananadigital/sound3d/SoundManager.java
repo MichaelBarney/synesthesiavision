@@ -12,13 +12,16 @@ import static android.media.AudioManager.STREAM_MUSIC;
  * Created by Jonathan on 10/03/2017.
  */
 
-public class SoundManager {
+class SoundManager{
 
+    private static final int MAX_STREAMS = 20;
     //Class that will plays the sound
     private SoundPool soundPool;
 
     //Necessary for SoundPool plays a sound
     private int soundID;
+    private int soundID2;
+    private int soundID3;
 
     //Context that will be created the Soundpool
     private Context context;
@@ -51,11 +54,12 @@ public class SoundManager {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void createNewSoundPool(){
         AudioAttributes attributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME)
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
         soundPool = new SoundPool.Builder()
                 .setAudioAttributes(attributes)
+                .setMaxStreams(MAX_STREAMS)
                 .build();
 
         startSoundPool();
@@ -66,8 +70,9 @@ public class SoundManager {
      */
     @SuppressWarnings("deprecation")
     private void createOldSoundPool(){
-        soundPool = new SoundPool(10, STREAM_MUSIC, 0);
+        soundPool = new SoundPool(MAX_STREAMS, STREAM_MUSIC, 0);
         startSoundPool();
+
     }
 
     /**
@@ -80,9 +85,17 @@ public class SoundManager {
                 if(sampleId == soundID){
                     soundPool.play(soundID, 0, 0, 0, -1, 1.0f); //id, //volume E// volume D // Prioridade// loop // rate
                 }
+                if(sampleId == soundID2) {
+                    soundPool.play(soundID2, 0, 0, 0, -1, 1.0f); //id, //volume E// volume D // Prioridade// loop // rate
+                }
+                if(sampleId == soundID3) {
+                    soundPool.play(soundID2, 0, 0, 0, -1, 1.0f); //id, //volume E// volume D // Prioridade// loop // rate
+                }
             }
         });
         soundID = soundPool.load(context, R.raw.bu, 2);
+        soundID2 = soundPool.load(context, R.raw.bu, 2);
+        soundID3 = soundPool.load(context, R.raw.bu, 2);
     }
 
     /**
@@ -91,8 +104,10 @@ public class SoundManager {
      * @param      leftVolume   The left volume
      * @param      rightVolume  The right volume
      */
-    public void setVolume(float leftVolume, float rightVolume) {
-        soundPool.setVolume(soundID, leftVolume, rightVolume);
+    void setVolume(int ID, float leftVolume, float rightVolume) {
+        if(ID == 1) soundPool.setVolume(soundID, leftVolume, rightVolume);
+        else if(ID == 2) soundPool.setVolume(soundID2, leftVolume, rightVolume);
+        else if(ID == 3) soundPool.setVolume(soundID3, leftVolume, rightVolume);
     }
 
     /**
@@ -100,8 +115,13 @@ public class SoundManager {
      *
      * @param      soundRate  The sound rate
      */
-    public void setRate(float soundRate) {
-        soundPool.setRate(soundID, soundRate);
+
+    void setRate(int ID, float soundRate) {
+        if(ID == 1) soundPool.setRate(soundID, soundRate);
+
+        else if(ID == 2) soundPool.setRate(soundID2, soundRate);
+
+        else if(ID == 3) soundPool.setRate(soundID3, soundRate);
     }
 
     /**

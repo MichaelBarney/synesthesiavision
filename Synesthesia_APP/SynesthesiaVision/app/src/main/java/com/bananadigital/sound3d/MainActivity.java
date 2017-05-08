@@ -86,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtRight;
     private TextView txtFront;
 
+    private int leftID = 1;
+    private int rightID = 2;
+    private int frontID = 3;
+
     //Instace of classes
     private WeatherForecast mWeatherForecast;
     private TextToSpeechManager mTTS;
@@ -454,20 +458,20 @@ public class MainActivity extends AppCompatActivity {
 
         //Left Sensor
         if(sensor == 0 && chkLeft.isChecked()){
-            soundManager.setVolume(volume, 0);                          //Set the volume according to the sensor passed to function.
-            soundManager.setRate(frequencyLeft);                   //Set the specified frequency.
+            soundManager.setVolume(leftID, volume, 0);                          //Set the volume according to the sensor passed to function.
+            soundManager.setRate(leftID, frequencyLeft);                   //Set the specified frequency.
             Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
         }
         //Front Sensor
         else if(sensor == 1 && chkFront.isChecked()){
-            soundManager.setVolume(volume/2, volume/2);
-            soundManager.setRate(frequencyFront);
+            soundManager.setVolume(frontID, volume/2, volume/2);
+            soundManager.setRate(frontID, frequencyFront);
             Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
         }
         //Right Sensor
         else if(sensor == 2 && chkRight.isChecked()){
-            soundManager.setVolume(0, volume);
-            soundManager.setRate(frequencyRight);
+            soundManager.setVolume(rightID, 0, volume);
+            soundManager.setRate(rightID, frequencyRight);
             Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
         }
 
