@@ -13,6 +13,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
+import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -21,6 +22,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -86,9 +88,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtRight;
     private TextView txtFront;
 
+    private RadioGroup rdGroup;
+
     private int leftID = 1;
     private int rightID = 2;
     private int frontID = 3;
+    private int allSensors = 4;
+
+    private boolean geracaoSom = false;
 
     //Instace of classes
     private WeatherForecast mWeatherForecast;
@@ -196,6 +203,8 @@ public class MainActivity extends AppCompatActivity {
         txtFront.setText("");
         txtRight.setText("");
         txtLeft.setText("");
+
+        rdGroup = (RadioGroup) findViewById(R.id.rdGroup);
 
     }
 
@@ -332,6 +341,23 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        rdGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+
+                btnStart.performClick();
+                switch(checkedId) {
+
+                    case R.id.rdNovo:
+                        geracaoSom = true;
+                        break;
+                    case R.id.rdAntigo:
+                        geracaoSom = false;
+                        break;
+                }
+            }
+        });
     }
 
     /**
@@ -414,10 +440,11 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
             
 
-                if(current_sensor+1 >= number_sensor) {
+                if(current_sensor == number_sensor) {
                     current_sensor = 0;
                 }
-                playAudio(current_sensor);  //Plays audio for specified sensor during the frequencySound_ms.
+                if(!geracaoSom)playAudio2(current_sensor);  //Plays audio for specified sensor during the frequencySound_ms.
+                else playAudio(current_sensor);
                 current_sensor++;
                 //Log.d("TEMPO", "tempo: " + frequencySound_ms);
             }
@@ -456,26 +483,123 @@ public class MainActivity extends AppCompatActivity {
             volume = 0.01f;
         }
 
+        int i;
+
         //Left Sensor
         if(sensor == 0 && chkLeft.isChecked()){
-            soundManager.setVolume(leftID, volume, 0);                          //Set the volume according to the sensor passed to function.
-            soundManager.setRate(leftID, frequencyLeft);                   //Set the specified frequency.
+
+            i = soundManager.getStreamID(leftID);
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(allSensors);
+                soundManager.setVolume(leftID, volume, 0);                          //Set the volume according to the sensor passed to function.
+                soundManager.setRate(leftID, frequencyLeft);                   //Set the specified frequency.
+            } else {
+                soundManager.resume(allSensors);
+                soundManager.pause(i);
+                soundManager.setVolume(volume, 0);                          //Set the volume according to the sensor passed to function.
+                soundManager.setRate(frequencyLeft);
+            }
+            Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
+        } else if(sensor == 0 && !chkLeft.isChecked()) {
+            i = soundManager.getStreamID(leftID);
+            soundManager.pause(i);
+
+        }
+
+        //Front Sensor
+        if(sensor == 1 && chkFront.isChecked()){
+
+            i = soundManager.getStreamID(frontID);
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(allSensors);
+                soundManager.setVolume(frontID, volume / 2, volume / 2);
+                soundManager.setRate(frontID, frequencyFront);
+            } else {
+                soundManager.resume(allSensors);
+                soundManager.pause(i);
+                soundManager.setVolume(volume / 2, volume / 2);
+                soundManager.setRate(frequencyFront);
+            }
+            Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
+        } else if(sensor == 1 && !chkFront.isChecked()) {
+            i = soundManager.getStreamID(frontID);
+            soundManager.pause(i);
+        }
+
+        //Right Sensor
+        if(sensor == 2 && chkRight.isChecked()){
+            Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
+            i = soundManager.getStreamID(rightID);
+
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(allSensors);
+                soundManager.setVolume(rightID, 0, volume);
+                soundManager.setRate(rightID, frequencyRight);
+            } else {
+                soundManager.resume(allSensors);
+                soundManager.pause(i);
+                soundManager.setVolume(0, volume);
+                soundManager.setRate(frequencyRight);
+            }
+
+            Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
+        } else if(sensor == 2 && !chkRight.isChecked()) {
+            i = soundManager.getStreamID(rightID);
+            soundManager.pause(i);
+        }
+    }
+
+
+    private void playAudio2(int sensor) {
+
+        float volume;
+        float distance = distance_sensor[sensor];
+        float dmax = 400;
+
+        if (distance < dmax) volume = 1 - (distance / dmax);
+        else volume = 0.01f;
+
+        //Change frequency when distance is less than a specified value
+        if(distance < 50) {
+            frequencyRight = 2.0f;
+            frequencyLeft = 2.0f;
+            frequencyFront = 2.0f;
+        } else if(distance >= 50 && distance < 100) {
+            frequencyRight = 1.8f;
+            frequencyLeft = 1.8f;
+            frequencyFront = 1.8f;
+        } else if(distance >= 100) {
+            frequencyRight = 1.6f;
+            frequencyLeft = 1.6f;
+            frequencyFront = 1.6f;
+        } else {
+            volume = 0.01f;
+        }
+
+        //Left Sensor
+        if(sensor == 0 && chkLeft.isChecked()){
+            soundManager.setVolume(volume, 0);                          //Set the volume according to the sensor passed to function.
+            soundManager.setRate(frequencyLeft);                   //Set the specified frequency.
             Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
         }
         //Front Sensor
         else if(sensor == 1 && chkFront.isChecked()){
-            soundManager.setVolume(frontID, volume/2, volume/2);
-            soundManager.setRate(frontID, frequencyFront);
+            soundManager.setVolume(volume/2, volume/2);
+            soundManager.setRate(frequencyFront);
             Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
         }
         //Right Sensor
         else if(sensor == 2 && chkRight.isChecked()){
-            soundManager.setVolume(rightID, 0, volume);
-            soundManager.setRate(rightID, frequencyRight);
+            soundManager.setVolume(0, volume);
+            soundManager.setRate(frequencyRight);
             Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
         }
 
     }
+
 
     /**
      * Saves a distance which comes from the glass.
@@ -506,7 +630,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Handler that will handle the data which comes through Bluetooth socket.
      */
-    Handler readHandler = new Handler () {
+    protected Handler readHandler = new Handler () {
 
         @Override
         public void handleMessage(Message msg) {
@@ -519,12 +643,17 @@ public class MainActivity extends AppCompatActivity {
             received += DELIMITER;
             //if(received.contains("turnon")) turnOn();
             if(received.contains("getweather")) {
-                //getWeatherForecast();
+
+                //If we can get weather so the instruction in if is executed
                 if(canGetWeather && mTTS_Spoke) {
                     count++;
                     Log.d("On Main", "Weather Forecast acquisicion received, count: " + count);
                     canGetWeather = false;
+
+                    //TTS not speaked
                     mTTS_Spoke = false;
+
+                    //We create the countdown timer to prevent users getWeather repeatdly in a short period of time
                     new CountDownTimer(5000, 5000) {
                         @Override
                         public void onTick(long millisUntilFinished) {
@@ -556,7 +685,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Handler that will handle the data which comes through WeatherForecast
      */
-    Handler weatherHandler = new Handler() {
+    protected Handler weatherHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);

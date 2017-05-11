@@ -32,16 +32,16 @@
 
         <activity
             android:name=".ConnectBluetooth">
-
-        </activity>
-
-        <activity android:name=".W4All">
             <intent-filter>
 
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
 
             </intent-filter>
+        </activity>
+
+        <activity android:name=".W4All">
+
         </activity>
 
         <activity android:name=".USBTeste">

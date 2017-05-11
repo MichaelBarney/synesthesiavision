@@ -4,12 +4,15 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -69,12 +72,25 @@ public class W4All extends AppCompatActivity {
     private TextView txtRight;
 
 
+    private int leftID = 1;
+    private int topLeftID = 2;
+    private int frontID = 3;
+    private int topRightID = 4;
+    private int rightID = 5;
+    private int allSensors = 6;
+
     private SeekBar seekFront;
     private SeekBar seekLeft;
     private SeekBar seekRight;
     private SeekBar seekTopRight;
     private SeekBar seekTopLeft;
 
+
+    private RadioGroup rGroup;
+    private RadioButton rdNovo;
+    private RadioButton rdAntigo;
+
+    private boolean geracaoSom = false;
 
     //Instace of classes
     private TextToSpeechManager mTTS;
@@ -116,12 +132,35 @@ public class W4All extends AppCompatActivity {
         seekTopLeft = (SeekBar) findViewById(R.id.seekTopLeft);
         seekTopRight = (SeekBar) findViewById(R.id.seekTopRight);
 
+        rGroup = (RadioGroup) findViewById(R.id.radioGroup);
+
+        rdAntigo = (RadioButton) findViewById(R.id.rdAntigo);
+        rdNovo = (RadioButton) findViewById(R.id.rdNovo);
+
+        rdAntigo.setChecked(true);
+
         txtFront = (TextView) findViewById(R.id.distanceFront);
         txtLeft = (TextView) findViewById(R.id.distanceLeft);
         txtRight = (TextView) findViewById(R.id.distanceRight);
         txtTopLeft = (TextView) findViewById(R.id.distanceTopLeft);
         txtTopRight = (TextView) findViewById(R.id.distanceTopRight);
 
+
+
+        rGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+                btn_disconnect.performClick();
+                switch(checkedId) {
+                    case R.id.rdAntigo:
+                        geracaoSom = false;
+                        break;
+                    case R.id.rdNovo:
+                        geracaoSom = true;
+                        break;
+                }
+            }
+        });
 
 
         btnAplicar.setOnClickListener(new View.OnClickListener() {
@@ -378,34 +417,110 @@ public class W4All extends AppCompatActivity {
             volume = 0.01f;
         }
 
+        int j = soundManager.getStreamID(allSensors);
+
         //Left Sensor
         if(sensor == 0 && chkEsquerda.isChecked()){
-            soundManager.setVolume(1, volume, 0);                          //Set the volume according to the sensor passed to function.
-            soundManager.setRate(1, frequenciaEsquerda);                   //Set the specified frequency.
+            int i = soundManager.getStreamID(leftID);
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(j);
+                soundManager.setVolume(leftID, volume, 0);                          //Set the volume according to the sensor passed to function.
+                soundManager.setRate(leftID, frequenciaEsquerda);                   //Set the specified frequency.
+            } else {
+                soundManager.pause(i);
+                soundManager.resume(j);
+                soundManager.setVolume(volume, 0);
+                soundManager.setRate(frequenciaEsquerda);
+            }
             Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
+        } else if( sensor == 0 && !chkEsquerda.isChecked()) {
+            int i = soundManager.getStreamID(leftID);
+            soundManager.pause(i);
         }
-        else if(sensor == 1 && chkFrenteEsquerda.isChecked()){
-            //soundManager.setVolume( (volume * 3) / 4, volume / 4);
-            //soundManager.setRate(frequenciaFrenteEsquerda);
+
+        if(sensor == 1 && chkFrenteEsquerda.isChecked()){
+            int i = soundManager.getStreamID(topLeftID);
+
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(j);
+                soundManager.setVolume( topLeftID, (volume * 3) / 4, volume / 4);
+                soundManager.setRate(topLeftID, frequenciaFrenteEsquerda);
+            } else {
+                soundManager.pause(i);
+                soundManager.resume(j);
+                soundManager.setVolume( (volume * 3) / 4, volume / 4);
+                soundManager.setRate(frequenciaFrenteEsquerda);
+            }
+
+        } else if(sensor == 1 && !chkFrenteEsquerda.isChecked()) {
+            int i = soundManager.getStreamID(topLeftID);
+            soundManager.pause(i);
         }
+
         //Front Sensor
-        else if(sensor == 2 && chkFrente.isChecked()){
-            soundManager.setVolume(3, volume/2, volume/2);
-            soundManager.setRate(3, frequenciaFrente);
+        if(sensor == 2 && chkFrente.isChecked()){
+            int i = soundManager.getStreamID(frontID);
+
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(j);
+                soundManager.setVolume(frontID, volume / 2, volume / 2);
+                soundManager.setRate(frontID, frequenciaFrente);
+            } else {
+                soundManager.pause(i);
+                soundManager.resume(j);
+                soundManager.setVolume( volume / 2, volume / 2);
+                soundManager.setRate( frequenciaFrente);
+            }
+
+
             Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
+        } else if(sensor == 2 && !chkFrente.isChecked()) {
+            int i = soundManager.getStreamID(frontID);
+            soundManager.pause(i);
         }
 
         //Top Right
-        else if(sensor == 3 && chkFrenteDireita.isChecked()){
-            //soundManager.setVolume( volume / 4, (volume * 3) / 4);
-            //soundManager.setRate(frequenciaFrenteDireita);
+        if(sensor == 3 && chkFrenteDireita.isChecked()){
+            int i = soundManager.getStreamID(topRightID);
+
+            if(geracaoSom){
+                soundManager.resume(i);
+                soundManager.pause(j);
+                soundManager.setVolume(topRightID, volume / 4, (volume * 3) / 4);
+                soundManager.setRate(topRightID, frequenciaFrenteDireita);
+            } else {
+                soundManager.pause(i);
+                soundManager.resume(j);
+                soundManager.setVolume(volume / 4, (volume * 3) / 4);
+                soundManager.setRate(frequenciaFrenteDireita);
+            }
+        } else if(sensor == 3 && !chkFrenteDireita.isChecked()) {
+            int i = soundManager.getStreamID(topRightID);
+            soundManager.pause(i);
         }
 
         //Right Sensor
-        else if(sensor == 4 && chkDireita.isChecked()){
-            soundManager.setVolume(2, 0, volume);
-            soundManager.setRate(2, frequenciaDireita);
-            Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
+        if(sensor == 4 && chkDireita.isChecked()){
+            int i = soundManager.getStreamID(rightID);
+
+            if(geracaoSom) {
+                soundManager.resume(i);
+                soundManager.pause(j);
+                soundManager.setVolume(rightID, 0, volume);
+                soundManager.setRate(rightID, frequenciaDireita);
+            } else {
+                soundManager.pause(i);
+                soundManager.resume(j);
+                soundManager.setVolume(0, volume);
+                soundManager.setRate(frequenciaDireita);
+            }
+                Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
+        } else if(sensor == 3 && !chkDireita.isChecked()) {
+            int i = soundManager.getStreamID(rightID);
+            soundManager.pause(i);
         }
 
     }
