@@ -12,10 +12,7 @@
 *
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/                                                
-
-
-
+*/
 package com.bananadigital.sound3d;
 
 import android.bluetooth.BluetoothDevice;
@@ -31,7 +28,6 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -159,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         playSound(R.raw.bluetooth_confirma);
-        if(!mGPS.canGetLocation()) mGPS.showSettingsAlert();
+        //if(!mGPS.canGetLocation()) mGPS.showSettingsAlert();
         if(soundManager == null) {
             soundManager = new SoundManager(this);
         }
@@ -190,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Find the views on xml file 
+     * Find the views on xml file
      */
     private void findViews() {
 
@@ -214,15 +210,15 @@ public class MainActivity extends AppCompatActivity {
         txtFrequency = (TextView) findViewById(R.id.txtFrequency);
         txtFrequency.setText(MIN + "/" + MAX);
 
-        txtFront = (TextView) findViewById(R.id.txtFront);
-        txtLeft = (TextView) findViewById(R.id.txtLeft);
-        txtRight = (TextView) findViewById(R.id.txtRight);
+        //txtFront = (TextView) findViewById(R.id.txtFront);
+        //txtLeft = (TextView) findViewById(R.id.txtLeft);
+        //txtRight = (TextView) findViewById(R.id.txtRight);
 
-        txtFront.setText("");
-        txtRight.setText("");
-        txtLeft.setText("");
+        //txtFront.setText("");
+        //txtRight.setText("");
+        //txtLeft.setText("");
 
-        rdGroup = (RadioGroup) findViewById(R.id.rdGroup);
+        //rdGroup = (RadioGroup) findViewById(R.id.rdGroup);
 
     }
 
@@ -258,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 mTTS.speak(getResources().getString(R.string.description_btn_weather_long));
-                return false;
+                return true;
             }
         });
 
@@ -296,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 mTTS.speak(getResources().getString(R.string.descritption_btn_start_long));
-                return false;
+                return true;
             }
         });
 
@@ -313,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(frequencySound < MAX) {
                     frequencySound += 1;
+                    //TODO: Adicionar ao TTS a frequência atual
                     mTTS.speak("Aumentando frequência");
                     txtFrequency.setText((frequencySound) + "/"+MAX+" Hz");
                     if(!init) {
@@ -330,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 mTTS.speak(getResources().getString(R.string.description_btn_increase_long));
-                return false;
+                return true;
             }
         });
 
@@ -356,10 +353,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 mTTS.speak(getResources().getString(R.string.description_btn_decrease_long));
-                return false;
+                return true;
             }
         });
-
+        /*
         rdGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
@@ -375,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             }
-        });
+        });*/
     }
 
     /**
@@ -395,6 +392,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void getWeatherForecast(){
         if(mGPS.canGetLocation() && isOnline()){
+
+            Log.d(TAG, "Weather> Adquirindo coordenadas");
 
             //Get latitude from GPS
             double lat = mGPS.getLatitude();
@@ -456,13 +455,15 @@ public class MainActivity extends AppCompatActivity {
         task = new TimerTask() {
             @Override
             public void run() {
-            
+
 
                 if(current_sensor == number_sensor) {
                     current_sensor = 0;
                 }
-                if(!geracaoSom)playAudio2(current_sensor);  //Plays audio for specified sensor during the frequencySound_ms.
-                else playAudio(current_sensor);
+                playAudio(current_sensor);
+                Log.d(TAG, "On Main: Current_Sensor " + current_sensor);
+                //if(!geracaoSom)playAudio2(current_sensor);  //Plays audio for specified sensor during the frequencySound_ms.
+                //else playAudio(current_sensor);
                 current_sensor++;
                 //Log.d("TEMPO", "tempo: " + frequencySound_ms);
             }
@@ -471,12 +472,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Generates the 3D sound 
+     * Generates the 3D sound
      *
      * @param      sensor     Value of sensor
      */
+    /*
     private void playAudio(int sensor) {
-        
+
         float volume;
         float distance = distance_sensor[sensor];
         float dmax = 400;
@@ -568,10 +570,10 @@ public class MainActivity extends AppCompatActivity {
             i = soundManager.getStreamID(rightID);
             soundManager.pause(i);
         }
-    }
+    }*/
 
 
-    private void playAudio2(int sensor) {
+    private void playAudio(int sensor) {
 
         float volume;
         float distance = distance_sensor[sensor];
@@ -601,19 +603,19 @@ public class MainActivity extends AppCompatActivity {
         if(sensor == 0 && chkLeft.isChecked()){
             soundManager.setVolume(volume, 0);                          //Set the volume according to the sensor passed to function.
             soundManager.setRate(frequencyLeft);                   //Set the specified frequency.
-            Log.d(TAG, "LEFT: D = " + distance + " V = " + volume);
+            Log.d(TAG, "SENSOR LEFT: D = " + distance + " V = " + volume);
         }
         //Front Sensor
         else if(sensor == 1 && chkFront.isChecked()){
             soundManager.setVolume(volume/2, volume/2);
             soundManager.setRate(frequencyFront);
-            Log.d(TAG, "FRONT: D = " + distance + " V = " + volume);
+            Log.d(TAG, "SENSOR FRONT: D = " + distance + " V = " + volume);
         }
         //Right Sensor
         else if(sensor == 2 && chkRight.isChecked()){
             soundManager.setVolume(0, volume);
             soundManager.setRate(frequencyRight);
-            Log.d(TAG, "RIGHT: D = " + distance + " V = " + volume);
+            Log.d(TAG, "SENSOR RIGHT: D = " + distance + " V = " + volume);
         }
 
     }
@@ -623,7 +625,7 @@ public class MainActivity extends AppCompatActivity {
      * Saves a distance which comes from the glass.
      *
      * @param      sensor    The sensor which value will be saved.
-     * @param      distance  Save specified sensors distance.   
+     * @param      distance  Save specified sensors distance.
      */
     private void saveData(char sensor, float distance) {
 
@@ -631,17 +633,17 @@ public class MainActivity extends AppCompatActivity {
         //Right
         if(sensor == 'a'){
             distance_sensor[2] = distance;
-            txtRight.setText(String.valueOf(distance));
+            //txtRight.setText(String.valueOf(distance));
         }
         //Front
         else if(sensor == 'b'){
             distance_sensor[1] = distance;
-            txtFront.setText(String.valueOf(distance));
+            //txtFront.setText(String.valueOf(distance));
         }
         //Left
         else if(sensor == 'c'){
             distance_sensor[0] = distance;
-            txtLeft.setText(String.valueOf(distance));
+            //txtLeft.setText(String.valueOf(distance));
         }
     }
 
@@ -667,7 +669,7 @@ public class MainActivity extends AppCompatActivity {
                     count++;
                     Log.d("On Main", "Weather Forecast acquisicion received, count: " + count);
                     canGetWeather = false;
-
+                    getWeatherForecast();
                     //TTS not speaked
                     mTTS_Spoke = false;
 
@@ -762,7 +764,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Desconectado", Toast.LENGTH_SHORT).show();
             startConnectBluetooth();
         }
-        txtFront.setText("");
+        //txtFront.setText("");
     }
 
     /**
