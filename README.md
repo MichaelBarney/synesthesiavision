@@ -19,8 +19,8 @@ The Arduino Code and PCB layouts for this component are found in the "Glasses_Ar
 
 The Arduino used is the Pro_Mini, and it is connected to 3 __modules__:
 1. Array of Ultrassonic Sensors
-2. Bluetooth Module
-3. NRF24 Module
+2. Smartphone Comunication Module
+3. Remote Comunication Module
 
 For the sonification, the Arduino receives distance information from a __Array of Ultrassonic Sensors__, it filters these information and sends it to the Smartphone through the __Bluetooth Module__.
 
