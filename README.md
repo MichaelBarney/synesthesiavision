@@ -31,7 +31,7 @@ The Android App can be found in the "Synesthesia_APP" folder, the app is develop
 
 The app assists the sonification feature, supplies the user with audio feedback for the NRF24 triggered features and connects with the Web Server to supply IoT capabilities.
 
-More information about the Smartphone App can be found in the App Folder
+More information about the Smartphone App can be found in the App Folder.
 
 ### Web Server and ioT
 The NodeJS Server app can be found in the "Server" folder.
